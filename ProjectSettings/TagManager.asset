@@ -13,6 +13,7 @@ TagManager:
   - UI
   - 
   - 
+  - MoveableObject
   - 
   - 
   - 
@@ -35,8 +36,7 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
+  - Character
   m_SortingLayers:
   - name: Default
     uniqueID: 0

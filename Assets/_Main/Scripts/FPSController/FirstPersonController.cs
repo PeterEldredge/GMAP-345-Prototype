@@ -4,11 +4,27 @@ using UnityEngine;
 using UnityStandardAssets.Utility;
 using Random = UnityEngine.Random;
 
+public struct WeaponFiredEventArgs : IGameEvent
+{
+    public enum FireType
+    {
+        Push,
+        Pull
+    }
+
+    public FireType FireTypeArg { get; private set; }
+
+    public WeaponFiredEventArgs(FireType fireType)
+    {
+        FireTypeArg = fireType;
+    }
+}
+
 namespace UnityStandardAssets.Characters.FirstPerson
 {
     [RequireComponent(typeof (CharacterController))]
     [RequireComponent(typeof (AudioSource))]
-    public class FirstPersonController : MonoBehaviour
+    public class FirstPersonController : GameEventUserObject
     {
         [SerializeField] private bool m_IsWalking = false;
         [SerializeField] private float m_AimMoveSpeed = 3f; 
@@ -71,6 +87,16 @@ namespace UnityStandardAssets.Characters.FirstPerson
             LockCursor();
         }
 
+        public override void Subscribe()
+        {
+
+        }
+
+        public override void Unsubscribe()
+        {
+            
+        }
+
         private void LockCursor()
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -114,7 +140,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             // get a normal for the surface that is being touched to move along it
             RaycastHit hitInfo;
-            Physics.SphereCast(transform.position, m_CharacterController.radius, Vector3.down, out hitInfo,
+            Physics.SphereCast(transform.position, m_CharacterController.radius / 2, Vector3.down, out hitInfo,
                                m_CharacterController.height/2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
             desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized;
 
@@ -226,37 +252,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
             float horizontal = Input.GetAxis("Horizontal");
             float vertical = Input.GetAxis("Vertical");
 
-            _isAiming = 0 < Input.GetAxis("Fire2");
-
             bool waswalking = m_IsWalking;
 
-#if !MOBILE_INPUT
-            // On standalone builds, walk/run speed is modified by a key press.
-            // keep track of whether or not the character is walking or running
+            m_IsWalking = !Input.GetKey(KeyCode.LeftShift);
+            _handAnimator.SetBool("IsRunning", Input.GetKey(KeyCode.LeftShift));
 
-#endif
-            // set the desired speed to be walking or running
-            if(_isAiming)
-            {
-                speed = m_AimMoveSpeed;
-                if(m_IsWalking == false) m_IsWalking = true;
-                if(!_handAnimator.GetBool("IsAiming")) _handAnimator.SetBool("IsAiming", true);
-                if(!_isZoomed) 
-                {
-                    _isZoomed = true;
-                    StartCoroutine(SetFOV());
-                }
-            }
-            else
-            {
-                if(_handAnimator.GetBool("IsAiming")) _handAnimator.SetBool("IsAiming", false);
-                m_IsWalking = !Input.GetKey(KeyCode.LeftShift);
-                _handAnimator.SetBool("IsRunning", Input.GetKey(KeyCode.LeftShift));
+            speed = m_IsWalking ? m_WalkSpeed : m_RunSpeed;
+            //}
 
-                speed = m_IsWalking ? m_WalkSpeed : m_RunSpeed;
-            }
-
-            m_MouseLook.IsAiming = _isAiming;
             m_Input = new Vector2(horizontal, vertical);
 
             // normalize input if it exceeds 1 in combined length:
@@ -264,6 +267,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 m_Input.Normalize();
             }
+
+            Fire(Input.GetMouseButtonDown(0), Input.GetMouseButtonDown(1));
+        }
+
+        private void Fire(bool push, bool pull)
+        {
+            if(push) EventManager.TriggerEvent(new WeaponFiredEventArgs(WeaponFiredEventArgs.FireType.Push));
+            if(pull) EventManager.TriggerEvent(new WeaponFiredEventArgs(WeaponFiredEventArgs.FireType.Pull));
         }
 
         private IEnumerator SetFOV()
@@ -277,9 +288,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             while(timer < _zoomTime && _isAiming)
             {
-                timer += Time.deltaTime;
                 m_Camera.fieldOfView = Mathf.SmoothStep(mainFrom, mainTo, timer / _zoomTime);
                 m_CharacterCamera.fieldOfView = Mathf.SmoothStep(characterFrom, characterTo, timer / _zoomTime);
+                timer += Time.deltaTime;
                 yield return null;
             }
 
@@ -298,9 +309,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             while(timer < _zoomTime)
             {
-                timer += Time.deltaTime;
                 m_Camera.fieldOfView = Mathf.SmoothStep(mainFrom, mainTo, timer / _zoomTime);
                 m_CharacterCamera.fieldOfView = Mathf.SmoothStep(characterFrom, characterTo, timer / _zoomTime);
+                timer += Time.deltaTime;
                 yield return null;
             }
 
