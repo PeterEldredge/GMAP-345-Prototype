@@ -123,8 +123,18 @@ public class MoveableBlock : MonoBehaviour
 
     private void SetAxisColors(Renderer pos, Renderer neg, float coloringLocation, int numOfMoves)
     {   
-        pos.material.color = new Color32(255, (byte)(255 * ((numOfMoves - coloringLocation) / numOfMoves)), (byte)(255 * ((numOfMoves - coloringLocation) / numOfMoves)), 255);
-        neg.material.color = new Color32(255, (byte)(255 * ((coloringLocation) / numOfMoves)), (byte)(255 * ((coloringLocation) / numOfMoves)), 255);
+        byte posColor = (byte)(255 * ((numOfMoves - coloringLocation) / numOfMoves));
+        byte negColor = (byte)(255 * ((coloringLocation) / numOfMoves));
+
+        pos.material.color = new Color32(255, posColor, posColor, 255);
+        neg.material.color = new Color32(255, negColor, negColor, 255);
+    }
+
+    private byte RoundByteColors(byte b)
+    {
+        if(b > 230) return 255;
+        else if (b < 35) return 0;
+        else return b;
     }
 
     public void HandleHit(HitData hitArgs)
@@ -172,6 +182,7 @@ public class MoveableBlock : MonoBehaviour
         }
 
         transform.localPosition = endingLocation;
+        SetAxisColors(axis, endingLocation);
         _moving = false;
     }
 
