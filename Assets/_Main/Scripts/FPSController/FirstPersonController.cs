@@ -32,9 +32,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private float m_RunSpeed = 10f;
         [SerializeField] [Range(0f, 1f)] private float m_RunstepLenghten = .7f;
         [SerializeField] private float m_JumpSpeed = 10f;
-        [SerializeField] private float m_LaunchSpeed = 30f;
+        [SerializeField] private float _horrizontalLaunchDampening = 10f;
+        [SerializeField] private float _launchControl = 10f;
+        [SerializeField] private float m_VerticalLaunchSpeed = 20f;
+        [SerializeField] private float m_HorrizontalLaunchSpeed = 25f;
         [SerializeField] private float m_LaunchTime = 3f;
         [SerializeField] private float m_StickToGroundForce = 10f;
+        [SerializeField] private float m_VerticalLaunchGravityMultiplier = 1.5f;
+        [SerializeField] private float m_HorrizontalLaunchGravityMultiplier = 1f;
         [SerializeField] private float m_GravityMultiplier = 2f;
         [SerializeField] private MouseLook m_MouseLook;
         [SerializeField] private bool m_UseHeadBob = true;
@@ -65,10 +70,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private float _zoomedFovChange;
         [SerializeField] private float _zoomTime;
 
+        private float _speed;
         private bool _isAiming;
         private bool _isZoomed;
         private bool _launch;
-        private bool _isLaunching;
+        private bool _isLaunchingVertiaclly;
+        private bool _isLaunchingHorrizontally;
         private Vector3 _launchVector;
         private float _startingFov;
         private float _startingCharacterFOV;
@@ -86,9 +93,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_AudioSource = GetComponent<AudioSource>();
 			m_MouseLook.Init(transform , m_Camera.transform);
 
+            _speed = 0f;
             _isZoomed = false;
             _launch = false;
-            _isLaunching = false;
+            _isLaunchingVertiaclly = false;
+            _isLaunchingHorrizontally = false;
             _launchVector = Vector3.zero;
             _startingFov = m_Camera.fieldOfView;
             _startingCharacterFOV = m_CharacterCamera.fieldOfView;
@@ -120,7 +129,13 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void Launch(PlayerLaunchEvent eventArgs)
         {
             _launch = true;
-            _launchVector = eventArgs.LaunchVector * m_LaunchSpeed * -1f;
+            if(!CompareToZero(eventArgs.LaunchVector.x) || !CompareToZero(eventArgs.LaunchVector.x)) _launchVector = eventArgs.LaunchVector * m_HorrizontalLaunchSpeed * -1f;
+            else _launchVector = eventArgs.LaunchVector * m_VerticalLaunchSpeed * -1f;
+        }
+
+        private bool CompareToZero(float f, float error = .01f)
+        {
+            return Mathf.Abs(f) < error;
         }
 
         private IEnumerator LockInput(float lockTime)
@@ -133,7 +148,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
         }
 
-        // Update is called once per frame
         private void Update()
         {
             RotateView();
@@ -150,39 +164,30 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 m_MoveDir.y = 0f;
                 m_Jumping = false;
             }
-            if (!m_CharacterController.isGrounded && !m_Jumping && !_isLaunching && m_PreviouslyGrounded)
+            if (!m_CharacterController.isGrounded && !m_Jumping && !_isLaunchingVertiaclly && !_isLaunchingHorrizontally && m_PreviouslyGrounded)
             {
                 m_MoveDir.y = 0f;
             }
 
             m_PreviouslyGrounded = m_CharacterController.isGrounded;
 
-            float speed;
-            GetInput(out speed);
-            // always move along the camera forward as it is the direction that it being aimed at
-            Vector3 desiredMove = transform.forward*m_Input.y + transform.right*m_Input.x;
+            if(_isLaunchingHorrizontally) GetHorrizontalLaunchInput();
+            else GetInput();
 
-            // get a normal for the surface that is being touched to move along it
-            RaycastHit hitInfo;
-            Physics.SphereCast(transform.position, m_CharacterController.radius / 2, Vector3.down, out hitInfo,
-                               m_CharacterController.height/2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
-            desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized;
-
-            m_MoveDir.x = desiredMove.x*speed;
-            m_MoveDir.z = desiredMove.z*speed;
-
-
-            if (m_CharacterController.isGrounded)
+            if(_launch)
+            {
+                _launch = false;
+                _isLaunchingVertiaclly = !CompareToZero(_launchVector.y);
+                _isLaunchingHorrizontally = !CompareToZero(_launchVector.x) || !CompareToZero(_launchVector.z);
+                m_MoveDir = _launchVector;
+            }
+            else if (m_CharacterController.isGrounded)
             {
                 m_MoveDir.y = -m_StickToGroundForce;
 
-                if(_launch)
-                {
-                    m_MoveDir = _launchVector;
-                    StartCoroutine(LaunchRoutine());
-                    _launch = false;
-                }
-                else if (m_Jump)
+                _isLaunchingVertiaclly = false;
+
+                if (m_Jump)
                 {
                     m_MoveDir.y = m_JumpSpeed;
                     PlayJumpSound();
@@ -192,27 +197,16 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
             else
             {
-                m_MoveDir += Physics.gravity*m_GravityMultiplier*Time.deltaTime;
+                if(_isLaunchingHorrizontally)  m_MoveDir += Physics.gravity*m_GravityMultiplier*Time.deltaTime;
+                else if(_isLaunchingVertiaclly) m_MoveDir += Physics.gravity*m_GravityMultiplier*Time.deltaTime;
+                else m_MoveDir += Physics.gravity*m_GravityMultiplier*Time.deltaTime;
             }
             m_CollisionFlags = m_CharacterController.Move(m_MoveDir*Time.deltaTime);
 
-            ProgressStepCycle(speed);
-            UpdateCameraPosition(speed);
+            Fire(Input.GetMouseButtonDown(0), Input.GetMouseButtonDown(1));
+            ProgressStepCycle();
+            UpdateCameraPosition();
         }
-
-        private IEnumerator LaunchRoutine()
-        {
-            float timer = 0;
-            _isLaunching = true;
-
-            while(timer < m_LaunchTime)
-            {
-                timer += Time.deltaTime;
-                yield return null;
-            }
-            _isLaunching = false;
-        }
-
 
         private void PlayLandingSound()
         {
@@ -229,11 +223,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
         }
         
 
-        private void ProgressStepCycle(float speed)
+        private void ProgressStepCycle()
         {
             if (m_CharacterController.velocity.sqrMagnitude > 0 && (m_Input.x != 0 || m_Input.y != 0))
             {
-                m_StepCycle += (m_CharacterController.velocity.magnitude + (speed*(m_IsWalking ? 1f : m_RunstepLenghten)))*
+                m_StepCycle += (m_CharacterController.velocity.magnitude + (_speed*(m_IsWalking ? 1f : m_RunstepLenghten)))*
                              Time.deltaTime;
             }
 
@@ -244,7 +238,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             m_NextStep = m_StepCycle + m_StepInterval;
 
-            PlayFootStepAudio();
+            if (!_isLaunchingHorrizontally) PlayFootStepAudio();
         }
 
 
@@ -265,18 +259,18 @@ namespace UnityStandardAssets.Characters.FirstPerson
         }
 
 
-        private void UpdateCameraPosition(float speed)
+        private void UpdateCameraPosition()
         {
             Vector3 newCameraPosition;
             if (!m_UseHeadBob)
             {
                 return;
             }
-            if (m_CharacterController.velocity.magnitude > 0 && m_CharacterController.isGrounded)
+            if (m_CharacterController.velocity.magnitude > 0 && m_CharacterController.isGrounded && !_isLaunchingHorrizontally)
             {
                 m_Camera.transform.localPosition =
                     m_HeadBob.DoHeadBob(m_CharacterController.velocity.magnitude +
-                                      (speed*(m_IsWalking ? 1f : m_RunstepLenghten)));
+                                      (_speed*(m_IsWalking ? 1f : m_RunstepLenghten)));
                 newCameraPosition = m_Camera.transform.localPosition;
                 newCameraPosition.y = m_Camera.transform.localPosition.y - m_JumpBob.Offset();
             }
@@ -289,7 +283,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         }
 
 
-        private void GetInput(out float speed)
+        private void GetInput()
         {
             // Read input
             float horizontal = Input.GetAxis("Horizontal");
@@ -300,7 +294,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_IsWalking = !Input.GetKey(KeyCode.LeftShift);
             _handAnimator.SetBool("IsRunning", Input.GetKey(KeyCode.LeftShift));
 
-            speed = m_IsWalking ? m_WalkSpeed : m_RunSpeed;
+            _speed = m_IsWalking ? m_WalkSpeed : m_RunSpeed;
             //}
 
             m_Input = new Vector2(horizontal, vertical);
@@ -311,7 +305,66 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 m_Input.Normalize();
             }
 
-            Fire(Input.GetMouseButtonDown(0), Input.GetMouseButtonDown(1));
+            // always move along the camera forward as it is the direction that it being aimed at
+            Vector3 desiredMove = transform.forward*m_Input.y + transform.right*m_Input.x;
+
+            // get a normal for the surface that is being touched to move along it
+            RaycastHit hitInfo;
+            Physics.SphereCast(transform.position, m_CharacterController.radius / 2, Vector3.down, out hitInfo,
+                               m_CharacterController.height/2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+            desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized;
+
+            m_MoveDir.x = desiredMove.x * _speed;
+            m_MoveDir.z = desiredMove.z * _speed;
+        }
+
+        private void GetHorrizontalLaunchInput()
+        {
+            // Read input
+            float horizontal = Input.GetAxis("Horizontal");
+            float vertical = Input.GetAxis("Vertical");
+
+            _handAnimator.SetBool("IsRunning", false);
+
+            m_Input = new Vector2(horizontal, vertical);
+
+            // normalize input if it exceeds 1 in combined length:
+            if (m_Input.sqrMagnitude > 1)
+            {
+                m_Input.Normalize();
+            }
+
+            // always move along the camera forward as it is the direction that it being aimed at
+            Vector3 desiredMove = transform.forward*m_Input.y + transform.right*m_Input.x;
+
+            // get a normal for the surface that is being touched to move along it
+            RaycastHit hitInfo;
+            Physics.SphereCast(transform.position, m_CharacterController.radius / 2, Vector3.down, out hitInfo,
+                               m_CharacterController.height/2f, Physics.AllLayers, QueryTriggerInteraction.Ignore);
+            desiredMove = Vector3.ProjectOnPlane(desiredMove, hitInfo.normal).normalized;
+
+            //need better way of reducng speed
+
+            desiredMove.x = desiredMove.x * _launchControl * Time.deltaTime;
+            desiredMove.z = desiredMove.z * _launchControl * Time.deltaTime;
+
+            if(m_CharacterController.isGrounded)
+            {
+                m_MoveDir.x -= Mathf.Sign(m_MoveDir.x) * _horrizontalLaunchDampening* Time.deltaTime;
+                m_MoveDir.z -= Mathf.Sign(m_MoveDir.x) * _horrizontalLaunchDampening* Time.deltaTime;
+            }
+
+            if(!CompareToZero(m_MoveDir.x, 1f)) m_MoveDir.x += desiredMove.x;
+            else m_MoveDir.x = desiredMove.x; 
+            if(!CompareToZero(m_MoveDir.z, 1f)) m_MoveDir.z += desiredMove.z;
+            else m_MoveDir.z = desiredMove.z;
+            
+            _speed = m_MoveDir.x * m_MoveDir.x + m_MoveDir.z * m_MoveDir.z;
+
+            if(Mathf.Sqrt(_speed) < m_RunSpeed && (!CompareToZero(m_Input.magnitude)))
+            {
+                _isLaunchingHorrizontally = false;
+            }
         }
 
         private void Fire(bool push, bool pull)
