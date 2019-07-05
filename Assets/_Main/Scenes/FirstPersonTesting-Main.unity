@@ -515,7 +515,7 @@ PrefabInstance:
     - target: {fileID: 6476180236998104154, guid: 7af21c00b5cce554b9ce93e57e1d8f10,
         type: 3}
       propertyPath: _numOfMoves.y
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6476180236998104154, guid: 7af21c00b5cce554b9ce93e57e1d8f10,
         type: 3}
@@ -641,7 +641,7 @@ PrefabInstance:
     - target: {fileID: 6476180236998104154, guid: 7af21c00b5cce554b9ce93e57e1d8f10,
         type: 3}
       propertyPath: _numOfMoves.y
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6476180236998104154, guid: 7af21c00b5cce554b9ce93e57e1d8f10,
         type: 3}
@@ -765,6 +765,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: FPSController
       objectReference: {fileID: 0}
+    - target: {fileID: 6294911808736314811, guid: 87c566863a7b7c841be9da3638ade570,
+        type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 6294911808736314804, guid: 87c566863a7b7c841be9da3638ade570,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -819,6 +824,15 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1407421019, guid: 87c566863a7b7c841be9da3638ade570, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6294911808736314806, guid: 87c566863a7b7c841be9da3638ade570,
+        type: 3}
+      propertyPath: m_LaunchSpeed
+      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 87c566863a7b7c841be9da3638ade570, type: 3}
@@ -1213,7 +1227,7 @@ PrefabInstance:
     - target: {fileID: 6476180236998104154, guid: 7af21c00b5cce554b9ce93e57e1d8f10,
         type: 3}
       propertyPath: _numOfMoves.y
-      value: 2
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6476180236998104154, guid: 7af21c00b5cce554b9ce93e57e1d8f10,
         type: 3}

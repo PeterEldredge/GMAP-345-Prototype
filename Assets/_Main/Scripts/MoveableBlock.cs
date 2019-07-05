@@ -16,17 +16,11 @@ public struct HitData
 
 public struct PlayerLaunchEvent : IGameEvent
 {
-    public enum FireType
-    {
-        Push,
-        Pull
-    }
+    public Vector3 LaunchVector { get; private set; }
 
-    public FireType FireTypeArg { get; private set; }
-
-    public PlayerLaunchEvent(FireType fireType)
+    public PlayerLaunchEvent(Vector3 launchVector)
     {
-        FireTypeArg = fireType;
+        LaunchVector = launchVector;
     }
 }
 
@@ -51,10 +45,14 @@ public class MoveableBlock : MonoBehaviour
     [SerializeField] private Vector3Int _currentLocation;
     [SerializeField] private float _moveTime;
 
+    private bool _moving;
+    private Vector3Int _currentNormalMovingVector;
     private Vector3Int _startingLocation;
 
     private void Awake()
     {
+        _moving = false;
+        _currentNormalMovingVector = Vector3Int.zero;
         _startingLocation = Vector3Int.RoundToInt(_currentLocation - transform.localPosition);
 
         SetAllColors();
@@ -134,22 +132,22 @@ public class MoveableBlock : MonoBehaviour
         int fireTypeMultiplier = 1;
         if(hitArgs.FireTypeArg == WeaponFiredEventArgs.FireType.Pull) fireTypeMultiplier = -1;
 
-        Vector3Int hitDirection = Vector3Int.RoundToInt(hitArgs.Hit.transform.InverseTransformDirection(hitArgs.Hit.normal * -1f)); //The opposite of the normal is the direction we would like to push
-        Vector3Int templocation = _currentLocation + hitDirection * fireTypeMultiplier;
+        _currentNormalMovingVector = Vector3Int.RoundToInt(hitArgs.Hit.transform.InverseTransformDirection(hitArgs.Hit.normal * -1f)); //The opposite of the normal is the direction we would like to push
+        Vector3Int templocation = _currentLocation + _currentNormalMovingVector * fireTypeMultiplier;
 
         Axis axis = Axis.NONE;
 
-        if(hitDirection.x != 0  && templocation.x >= 0 && templocation.x <= _numOfMoves.x)
+        if(_currentNormalMovingVector.x != 0  && templocation.x >= 0 && templocation.x <= _numOfMoves.x)
         {
             _currentLocation.x = templocation.x;
             axis = Axis.X;
         }
-        else if(hitDirection.y != 0 && templocation.y >= 0 && templocation.y <= _numOfMoves.y)
+        else if(_currentNormalMovingVector.y != 0 && templocation.y >= 0 && templocation.y <= _numOfMoves.y)
         {
             _currentLocation.y = templocation.y;
             axis = Axis.Y;
         }
-        else if(hitDirection.z != 0 && templocation.z >= 0 && templocation.z <= _numOfMoves.z)
+        else if(_currentNormalMovingVector.z != 0 && templocation.z >= 0 && templocation.z <= _numOfMoves.z)
         {
             _currentLocation.z = templocation.z;
             axis = Axis.Z;
@@ -161,6 +159,8 @@ public class MoveableBlock : MonoBehaviour
     private IEnumerator MovePiece(Vector3 startingLocation, Vector3Int endingLocation, Axis axis)
     {
         float timer = 0f;
+
+        _moving = true;
         Vector3 endingLocationF = new Vector3(endingLocation.x, endingLocation.y, endingLocation.z);
 
         while(timer < _moveTime)
@@ -172,5 +172,15 @@ public class MoveableBlock : MonoBehaviour
         }
 
         transform.localPosition = endingLocation;
+        _moving = false;
+    }
+
+    private void OnTriggerEnter(Collider collision)
+    {
+        if (collision.gameObject.CompareTag("Player") && _moving)
+        {
+            _moving = false;
+            EventManager.TriggerEvent(new PlayerLaunchEvent(_currentNormalMovingVector));
+        }
     }
 }

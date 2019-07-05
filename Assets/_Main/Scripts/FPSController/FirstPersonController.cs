@@ -32,6 +32,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private float m_RunSpeed = 10f;
         [SerializeField] [Range(0f, 1f)] private float m_RunstepLenghten = .7f;
         [SerializeField] private float m_JumpSpeed = 10f;
+        [SerializeField] private float m_LaunchSpeed = 30f;
+        [SerializeField] private float m_LaunchTime = 3f;
         [SerializeField] private float m_StickToGroundForce = 10f;
         [SerializeField] private float m_GravityMultiplier = 2f;
         [SerializeField] private MouseLook m_MouseLook;
@@ -65,6 +67,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private bool _isAiming;
         private bool _isZoomed;
+        private bool _launch;
+        private bool _isLaunching;
+        private Vector3 _launchVector;
         private float _startingFov;
         private float _startingCharacterFOV;
 
@@ -82,19 +87,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
 			m_MouseLook.Init(transform , m_Camera.transform);
 
             _isZoomed = false;
+            _launch = false;
+            _isLaunching = false;
+            _launchVector = Vector3.zero;
             _startingFov = m_Camera.fieldOfView;
             _startingCharacterFOV = m_CharacterCamera.fieldOfView;
             LockCursor();
-        }
-
-        public override void Subscribe()
-        {
-
-        }
-
-        public override void Unsubscribe()
-        {
-            
         }
 
         private void LockCursor()
@@ -109,24 +107,50 @@ namespace UnityStandardAssets.Characters.FirstPerson
             Cursor.visible = true;
         }
 
+        public override void Subscribe()
+        {
+            EventManager.AddListener<PlayerLaunchEvent>(Launch);
+        }
+
+        public override void Unsubscribe()
+        {
+            EventManager.RemoveListener<PlayerLaunchEvent>(Launch);
+        }
+
+        private void Launch(PlayerLaunchEvent eventArgs)
+        {
+            _launch = true;
+            _launchVector = eventArgs.LaunchVector * m_LaunchSpeed * -1f;
+        }
+
+        private IEnumerator LockInput(float lockTime)
+        {
+            float timer = 0f;
+            
+            while (timer < lockTime)
+            {
+                yield return null;
+            }
+        }
+
         // Update is called once per frame
         private void Update()
         {
             RotateView();
             // the jump state needs to read here to make sure it is not missed
-            if (!m_Jump)
+            if (!m_Jump && m_CharacterController.isGrounded)
             {
                 m_Jump = Input.GetButtonDown("Jump");
             }
 
-            if (!m_PreviouslyGrounded && m_CharacterController.isGrounded)
+            if (!m_PreviouslyGrounded && m_CharacterController.isGrounded && !_launch)
             {
                 StartCoroutine(m_JumpBob.DoBobCycle());
                 PlayLandingSound();
                 m_MoveDir.y = 0f;
                 m_Jumping = false;
             }
-            if (!m_CharacterController.isGrounded && !m_Jumping && m_PreviouslyGrounded)
+            if (!m_CharacterController.isGrounded && !m_Jumping && !_isLaunching && m_PreviouslyGrounded)
             {
                 m_MoveDir.y = 0f;
             }
@@ -152,7 +176,13 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 m_MoveDir.y = -m_StickToGroundForce;
 
-                if (m_Jump)
+                if(_launch)
+                {
+                    m_MoveDir = _launchVector;
+                    StartCoroutine(LaunchRoutine());
+                    _launch = false;
+                }
+                else if (m_Jump)
                 {
                     m_MoveDir.y = m_JumpSpeed;
                     PlayJumpSound();
@@ -168,6 +198,19 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             ProgressStepCycle(speed);
             UpdateCameraPosition(speed);
+        }
+
+        private IEnumerator LaunchRoutine()
+        {
+            float timer = 0;
+            _isLaunching = true;
+
+            while(timer < m_LaunchTime)
+            {
+                timer += Time.deltaTime;
+                yield return null;
+            }
+            _isLaunching = false;
         }
 
 
