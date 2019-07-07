@@ -32,7 +32,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private float m_RunSpeed = 10f;
         [SerializeField] [Range(0f, 1f)] private float m_RunstepLenghten = .7f;
         [SerializeField] private float m_JumpSpeed = 10f;
-        [SerializeField] private float _horrizontalLaunchDampening = 10f;
+        [SerializeField] private float _horrizontalLaunchAirDampening = 6f;
+        [SerializeField] private float _horrizontalLaunchGroundDampening = 10f;
         [SerializeField] private float _launchControl = 10f;
         [SerializeField] private float m_VerticalLaunchSpeed = 20f;
         [SerializeField] private float m_HorrizontalLaunchSpeed = 25f;
@@ -206,6 +207,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             Fire(Input.GetMouseButtonDown(0), Input.GetMouseButtonDown(1));
             ProgressStepCycle();
             UpdateCameraPosition();
+            UpdateAnimations();
         }
 
         private void PlayLandingSound()
@@ -282,6 +284,21 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_Camera.transform.localPosition = newCameraPosition;
         }
 
+        private void UpdateAnimations()
+        {
+            float facingAngle = transform.rotation.eulerAngles.y;
+            if(facingAngle < 0) facingAngle += 360;
+
+            float moveAngle = Mathf.Atan(m_MoveDir.x / m_MoveDir.z) * Mathf.Rad2Deg;
+            if(Mathf.Sign(m_MoveDir.z) < 0) moveAngle += 180;
+            else if(Mathf.Sign(m_MoveDir.x) < 0) moveAngle += 360;
+
+            float speedInFacingDirection = _speed * Mathf.Cos((facingAngle - moveAngle) * Mathf.Deg2Rad);
+
+            if(speedInFacingDirection > 7 && m_CharacterController.isGrounded) _handAnimator.SetBool("IsRunning", true);
+            else _handAnimator.SetBool("IsRunning", false);
+        }
+
 
         private void GetInput()
         {
@@ -292,7 +309,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             bool waswalking = m_IsWalking;
 
             m_IsWalking = !Input.GetKey(KeyCode.LeftShift);
-            _handAnimator.SetBool("IsRunning", Input.GetKey(KeyCode.LeftShift));
 
             _speed = m_IsWalking ? m_WalkSpeed : m_RunSpeed;
             //}
@@ -324,8 +340,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             float horizontal = Input.GetAxis("Horizontal");
             float vertical = Input.GetAxis("Vertical");
 
-            _handAnimator.SetBool("IsRunning", false);
-
             m_Input = new Vector2(horizontal, vertical);
 
             // normalize input if it exceeds 1 in combined length:
@@ -350,8 +364,13 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             if(m_CharacterController.isGrounded)
             {
-                m_MoveDir.x -= Mathf.Sign(m_MoveDir.x) * _horrizontalLaunchDampening* Time.deltaTime;
-                m_MoveDir.z -= Mathf.Sign(m_MoveDir.x) * _horrizontalLaunchDampening* Time.deltaTime;
+                m_MoveDir.x -= Mathf.Sign(m_MoveDir.x) * _horrizontalLaunchGroundDampening * Time.deltaTime;
+                m_MoveDir.z -= Mathf.Sign(m_MoveDir.x) * _horrizontalLaunchGroundDampening * Time.deltaTime;
+            }
+            else
+            {
+                m_MoveDir.x -= Mathf.Sign(m_MoveDir.x) * _horrizontalLaunchAirDampening * Time.deltaTime;
+                m_MoveDir.z -= Mathf.Sign(m_MoveDir.x) * _horrizontalLaunchAirDampening * Time.deltaTime;
             }
 
             if(!CompareToZero(m_MoveDir.x, 1f)) m_MoveDir.x += desiredMove.x;
@@ -359,9 +378,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
             if(!CompareToZero(m_MoveDir.z, 1f)) m_MoveDir.z += desiredMove.z;
             else m_MoveDir.z = desiredMove.z;
             
-            _speed = m_MoveDir.x * m_MoveDir.x + m_MoveDir.z * m_MoveDir.z;
+            _speed = Mathf.Sqrt(m_MoveDir.x * m_MoveDir.x + m_MoveDir.z * m_MoveDir.z);
 
-            if(Mathf.Sqrt(_speed) < m_RunSpeed && (!CompareToZero(m_Input.magnitude)))
+            if(_speed < m_RunSpeed && (!CompareToZero(m_Input.magnitude)))
             {
                 _isLaunchingHorrizontally = false;
             }
