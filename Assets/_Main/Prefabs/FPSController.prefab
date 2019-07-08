@@ -4122,7 +4122,7 @@ MonoBehaviour:
     MaximumX: 90
     smoothFrames: 2
     IsAiming: 0
-  m_UseHeadBob: 1
+  m_UseHeadBob: 0
   _headBob:
     HorizontalBobRange: 0.1
     VerticalBobRange: 0.1
