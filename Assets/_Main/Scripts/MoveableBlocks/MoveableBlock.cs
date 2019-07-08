@@ -59,6 +59,11 @@ public class MoveableBlock : MonoBehaviour
         SetAllColors();
     }
 
+    private void Update()
+    {
+        //CheckMovePath(Axis.X);
+    }
+
     private void SetAllColors()
     {
         if(_numOfMoves.x == 0)
@@ -148,23 +153,56 @@ public class MoveableBlock : MonoBehaviour
 
         Axis axis = Axis.NONE;
 
-        if(_currentNormalMovingVector.x != 0  && templocation.x >= 0 && templocation.x <= _numOfMoves.x)
+        if(_currentNormalMovingVector.x != 0  && templocation.x >= 0 && templocation.x <= _numOfMoves.x && CheckMovePath(Axis.X))
         {
             _currentLocation.x = templocation.x;
             axis = Axis.X;
         }
-        else if(_currentNormalMovingVector.y != 0 && templocation.y >= 0 && templocation.y <= _numOfMoves.y)
+        else if(_currentNormalMovingVector.y != 0 && templocation.y >= 0 && templocation.y <= _numOfMoves.y && CheckMovePath(Axis.Y))
         {
             _currentLocation.y = templocation.y;
             axis = Axis.Y;
         }
-        else if(_currentNormalMovingVector.z != 0 && templocation.z >= 0 && templocation.z <= _numOfMoves.z)
+        else if(_currentNormalMovingVector.z != 0 && templocation.z >= 0 && templocation.z <= _numOfMoves.z && CheckMovePath(Axis.Z))
         {
             _currentLocation.z = templocation.z;
             axis = Axis.Z;
         }
 
         if(axis != Axis.NONE) StartCoroutine(MovePiece(transform.localPosition, _currentLocation - _startingLocation, axis));
+    }
+
+    private bool CheckMovePath(Axis axis)
+    {
+        Vector3 raycastStartAdjustment = Vector3.zero;
+        Vector3 raycastDirection = Vector3.zero;
+        float raycastLength = 0;
+        
+        switch(axis)
+        {
+            case Axis.X:
+                raycastStartAdjustment += new Vector3(transform.localScale.x / 2 * _currentNormalMovingVector.x, 0, 0);
+                raycastDirection += transform.forward * _currentNormalMovingVector.x;
+                raycastLength = transform.localScale.x;
+                break;
+            case Axis.Y:
+                raycastStartAdjustment += new Vector3(0, transform.localScale.y / 2 * _currentNormalMovingVector.y, 0);
+                raycastDirection += transform.up * _currentNormalMovingVector.y;
+                raycastLength = transform.localScale.y;
+                break;
+            case Axis.Z:
+                raycastStartAdjustment += new Vector3(0, 0, transform.localScale.z / 2 * _currentNormalMovingVector.z);
+                raycastDirection += transform.right * _currentNormalMovingVector.z;
+                raycastLength = transform.localScale.z;
+                break;
+        }
+        Debug.DrawRay(transform.position + raycastStartAdjustment, raycastDirection, Color.magenta, raycastLength);
+        if(Physics.Raycast(transform.position + raycastStartAdjustment, raycastDirection, out RaycastHit hit, raycastLength, LayerMask.NameToLayer("Player")))
+        {
+            return false;
+        }
+        
+        return true;
     }
 
     private IEnumerator MovePiece(Vector3 startingLocation, Vector3Int endingLocation, Axis axis)
