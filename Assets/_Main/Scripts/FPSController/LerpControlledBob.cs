@@ -7,8 +7,8 @@ namespace UnityStandardAssets.Utility
     [Serializable]
     public class LerpControlledBob
     {
-        public float BobDuration;
-        public float BobAmount;
+        public float BobDuration = .2f;
+        public float BobAmount = .1f;
 
         private float m_Offset = 0f;
 

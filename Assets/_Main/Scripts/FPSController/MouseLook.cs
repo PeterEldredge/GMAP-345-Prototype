@@ -7,15 +7,13 @@ namespace UnityStandardAssets.Characters.FirstPerson
     [Serializable]
     public class MouseLook
     {
-        public float XSensitivity = 2f;
-        public float YSensitivity = 2f;
+        public float XSensitivity = 1f;
+        public float YSensitivity = 1f;
         public float AimingMultiplier = .6f;
         public bool clampVerticalRotation = true;
         public float MinimumX = -90f;
         public float MaximumX = 90f;
-        public int smoothFrames = 3;
-        public bool lockCursor = true;
-
+        public int smoothFrames = 2;
 
         private Quaternion m_CharacterTargetRot;
         private Quaternion m_CameraTargetRot;
@@ -73,8 +71,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             character.localRotation = m_CharacterTargetRot;
             camera.localRotation = m_CameraTargetRot;
-
-            UpdateCursorLock();
         }
 
         private float GetAverage(List<float> list)
@@ -87,23 +83,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
 
             return total / list.Count;
-        }
-
-        public void SetCursorLock(bool value)
-        {
-            lockCursor = value;
-            if(!lockCursor)
-            {//we force unlock the cursor if the user disable the cursor locking helper
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-            }
-        }
-
-        public void UpdateCursorLock()
-        {
-            //if the user set "lockCursor" we check & properly lock the cursos
-            if (lockCursor)
-                InternalLockUpdate();
         }
 
         private void InternalLockUpdate()

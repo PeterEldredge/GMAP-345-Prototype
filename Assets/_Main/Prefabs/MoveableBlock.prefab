@@ -562,6 +562,11 @@ MonoBehaviour:
   _yNeg: {fileID: 6476180236958718213}
   _zPos: {fileID: 6476180236646583601}
   _zNeg: {fileID: 6476180236547738988}
-  _numOfMoves: {x: 2, y: 0, z: 0}
-  _currentLocation: {x: 0, y: 0, z: 0}
   _moveTime: 0.1
+  ShowPreview: 1
+  XMoves: 0
+  YMoves: 0
+  ZMoves: 0
+  XPos: 0
+  YPos: 0
+  ZPos: 0

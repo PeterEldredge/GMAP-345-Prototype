@@ -34,24 +34,25 @@ public class MoveableBlock : MonoBehaviour
         Z
     }
 
-    [SerializeField] private Renderer _xPos;
-    [SerializeField] private Renderer _xNeg;
-    [SerializeField] private Renderer _yPos;
-    [SerializeField] private Renderer _yNeg;
-    [SerializeField] private Renderer _zPos;
-    [SerializeField] private Renderer _zNeg;
-
-    [SerializeField] private Vector3Int _numOfMoves;
-    [SerializeField] private Vector3Int _currentLocation;
+    [SerializeField] private Renderer _xPos, _xNeg, _yPos, _yNeg, _zPos, _zNeg;
     [SerializeField] private float _moveTime;
+    
+    [HideInInspector] public bool ShowPreview = true;  
+    [HideInInspector] public int XMoves, YMoves, ZMoves;
+    [HideInInspector] public int XPos, YPos, ZPos;
 
     private bool _moving;
+    private Vector3Int _numOfMoves;
+    private Vector3Int _currentLocation;
     private Vector3Int _currentNormalMovingVector;
     private Vector3Int _startingLocation;
 
     private void Awake()
     {
         _moving = false;
+        
+        _numOfMoves = new Vector3Int(XMoves, YMoves, ZMoves);
+        _currentLocation = new Vector3Int(XPos, YPos, ZPos);
         _currentNormalMovingVector = Vector3Int.zero;
         _startingLocation = Vector3Int.RoundToInt(_currentLocation - transform.localPosition);
 
