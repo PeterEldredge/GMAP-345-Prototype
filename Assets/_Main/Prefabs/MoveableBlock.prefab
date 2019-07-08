@@ -563,8 +563,10 @@ MonoBehaviour:
   _zPos: {fileID: 6476180236646583601}
   _zNeg: {fileID: 6476180236547738988}
   _moveTime: 0.1
+  _verticalLaunchSpeed: 19
+  _horizontalLaunchSpeed: 25
   ShowPreview: 1
-  XMoves: 0
+  XMoves: 2
   YMoves: 0
   ZMoves: 0
   XPos: 0

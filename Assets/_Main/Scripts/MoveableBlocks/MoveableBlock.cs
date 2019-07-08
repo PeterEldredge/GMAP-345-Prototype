@@ -17,10 +17,15 @@ public struct HitData
 public struct PlayerLaunchEvent : IGameEvent
 {
     public Vector3 LaunchVector { get; private set; }
+    public float VerticalLaunchSpeed { get; private set; }
+    public float HorizontalLaunchSpeed { get; private set; }
 
-    public PlayerLaunchEvent(Vector3 launchVector)
+
+    public PlayerLaunchEvent(Vector3 launchVector, float verticalLaunchSpeed, float horizontalLaunchSpeed)
     {
         LaunchVector = launchVector;
+        VerticalLaunchSpeed = verticalLaunchSpeed;
+        HorizontalLaunchSpeed = horizontalLaunchSpeed;
     }
 }
 
@@ -35,7 +40,9 @@ public class MoveableBlock : MonoBehaviour
     }
 
     [SerializeField] private Renderer _xPos, _xNeg, _yPos, _yNeg, _zPos, _zNeg;
-    [SerializeField] private float _moveTime;
+    [SerializeField] private float _moveTime = .1f;
+    [SerializeField] private float _verticalLaunchSpeed = 17f;
+    [SerializeField] private float _horizontalLaunchSpeed = 25f;
     
     [HideInInspector] public bool ShowPreview = true;  
     [HideInInspector] public int XMoves, YMoves, ZMoves;
@@ -57,11 +64,6 @@ public class MoveableBlock : MonoBehaviour
         _startingLocation = Vector3Int.RoundToInt(_currentLocation - transform.localPosition);
 
         SetAllColors();
-    }
-
-    private void Update()
-    {
-        //CheckMovePath(Axis.X);
     }
 
     private void SetAllColors()
@@ -148,31 +150,46 @@ public class MoveableBlock : MonoBehaviour
         int fireTypeMultiplier = 1;
         if(hitArgs.FireTypeArg == WeaponFiredEventArgs.FireType.Pull) fireTypeMultiplier = -1;
 
-        _currentNormalMovingVector = Vector3Int.RoundToInt(hitArgs.Hit.transform.InverseTransformDirection(hitArgs.Hit.normal * -1f)); //The opposite of the normal is the direction we would like to push
+        _currentNormalMovingVector = Vector3Int.RoundToInt(hitArgs.Hit.transform.InverseTransformDirection(hitArgs.Hit.normal * -1f));
         Vector3Int templocation = _currentLocation + _currentNormalMovingVector * fireTypeMultiplier;
-
         Axis axis = Axis.NONE;
 
-        if(_currentNormalMovingVector.x != 0  && templocation.x >= 0 && templocation.x <= _numOfMoves.x && CheckMovePath(Axis.X))
+        if(_currentNormalMovingVector.x != 0  && templocation.x >= 0 && templocation.x <= _numOfMoves.x && CheckMovePath(Axis.X, _currentNormalMovingVector * fireTypeMultiplier))
         {
             _currentLocation.x = templocation.x;
             axis = Axis.X;
         }
-        else if(_currentNormalMovingVector.y != 0 && templocation.y >= 0 && templocation.y <= _numOfMoves.y && CheckMovePath(Axis.Y))
+        else if(_currentNormalMovingVector.y != 0 && templocation.y >= 0 && templocation.y <= _numOfMoves.y && CheckMovePath(Axis.Y, _currentNormalMovingVector* fireTypeMultiplier))
         {
             _currentLocation.y = templocation.y;
             axis = Axis.Y;
         }
-        else if(_currentNormalMovingVector.z != 0 && templocation.z >= 0 && templocation.z <= _numOfMoves.z && CheckMovePath(Axis.Z))
+        else if(_currentNormalMovingVector.z != 0 && templocation.z >= 0 && templocation.z <= _numOfMoves.z && CheckMovePath(Axis.Z, _currentNormalMovingVector * fireTypeMultiplier))
         {
             _currentLocation.z = templocation.z;
             axis = Axis.Z;
         }
 
-        if(axis != Axis.NONE) StartCoroutine(MovePiece(transform.localPosition, _currentLocation - _startingLocation, axis));
+        if(axis != Axis.NONE) 
+        {
+            if(hitArgs.FireTypeArg == WeaponFiredEventArgs.FireType.Pull)
+            {
+                AudioManager.Instance.PlayPullSound();
+            }
+            else
+            {
+                AudioManager.Instance.PlayPushSound();
+            }
+
+            StartCoroutine(MovePiece(transform.localPosition, _currentLocation - _startingLocation, axis));
+        }
+        else
+        {
+            AudioManager.Instance.PlayDudSound();
+        }
     }
 
-    private bool CheckMovePath(Axis axis)
+    private bool CheckMovePath(Axis axis, Vector3 movingVector) //Makes sure the path the cube is going to travel is clear
     {
         Vector3 raycastStartAdjustment = Vector3.zero;
         Vector3 raycastDirection = Vector3.zero;
@@ -181,23 +198,24 @@ public class MoveableBlock : MonoBehaviour
         switch(axis)
         {
             case Axis.X:
-                raycastStartAdjustment += new Vector3(transform.localScale.x / 2 * _currentNormalMovingVector.x, 0, 0);
-                raycastDirection += transform.forward * _currentNormalMovingVector.x;
+                raycastStartAdjustment += new Vector3(transform.parent.localScale.x / 2 * movingVector.x - Mathf.Sign(movingVector.x) * .05f, transform.parent.localScale.y / 2, 0);
+                raycastDirection += transform.right * movingVector.x * transform.parent.localScale.x;
                 raycastLength = transform.localScale.x;
                 break;
             case Axis.Y:
-                raycastStartAdjustment += new Vector3(0, transform.localScale.y / 2 * _currentNormalMovingVector.y, 0);
-                raycastDirection += transform.up * _currentNormalMovingVector.y;
+                raycastStartAdjustment += new Vector3(0, transform.parent.localScale.y / 2 * movingVector.y + transform.parent.localScale.y / 2  - Mathf.Sign(movingVector.y) * .05f, 0);
+                raycastDirection += transform.up * movingVector.y * transform.parent.localScale.y;
                 raycastLength = transform.localScale.y;
                 break;
             case Axis.Z:
-                raycastStartAdjustment += new Vector3(0, 0, transform.localScale.z / 2 * _currentNormalMovingVector.z);
-                raycastDirection += transform.right * _currentNormalMovingVector.z;
+                raycastStartAdjustment += new Vector3(0, transform.parent.localScale.y / 2, transform.parent.localScale.z / 2 * movingVector.z  - Mathf.Sign(movingVector.z) * .05f);
+                raycastDirection += transform.forward * movingVector.z * transform.parent.localScale.z;
                 raycastLength = transform.localScale.z;
                 break;
         }
-        Debug.DrawRay(transform.position + raycastStartAdjustment, raycastDirection, Color.magenta, raycastLength);
-        if(Physics.Raycast(transform.position + raycastStartAdjustment, raycastDirection, out RaycastHit hit, raycastLength, LayerMask.NameToLayer("Player")))
+        
+        //Debug.DrawRay(transform.position + raycastStartAdjustment, raycastDirection, Color.magenta, raycastLength);
+        if(Physics.Raycast(transform.position + raycastStartAdjustment, raycastDirection, out RaycastHit hit, raycastLength, LayerMask.GetMask("Player")))
         {
             return false;
         }
@@ -205,7 +223,7 @@ public class MoveableBlock : MonoBehaviour
         return true;
     }
 
-    private IEnumerator MovePiece(Vector3 startingLocation, Vector3Int endingLocation, Axis axis)
+    private IEnumerator MovePiece(Vector3 startingLocation, Vector3Int endingLocation, Axis axis) //Controls piece movement and smooth color changes
     {
         float timer = 0f;
 
@@ -223,14 +241,15 @@ public class MoveableBlock : MonoBehaviour
         transform.localPosition = endingLocation;
         SetAxisColors(axis, endingLocation);
         _moving = false;
+        _currentNormalMovingVector = Vector3Int.zero;
     }
 
     private void OnTriggerEnter(Collider collision)
     {
-        if (collision.gameObject.CompareTag("Player") && _moving)
+        if (collision.gameObject.CompareTag("Player") && _moving) //Fires launch event if the player is hit
         {
             _moving = false;
-            EventManager.TriggerEvent(new PlayerLaunchEvent(_currentNormalMovingVector));
+            EventManager.TriggerEvent(new PlayerLaunchEvent(_currentNormalMovingVector, _verticalLaunchSpeed, _horizontalLaunchSpeed));
         }
     }
 }

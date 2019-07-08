@@ -49,9 +49,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private float _horrizontalLaunchAirDampening = 6f;
         [SerializeField] private float _horrizontalLaunchGroundDampening = 10f;
         [SerializeField] private float _launchControl = 5f;
-        [SerializeField] private float _verticalLaunchSpeed = 17f;
-        [SerializeField] private float _horrizontalLaunchSpeed = 25f;
-        [SerializeField] private float _launchTime = 3f;
         [SerializeField] private float _verticalLaunchGravityMultiplier = 1.5f;
         [SerializeField] private float _horrizontalLaunchGravityMultiplier = 1f;
         [SerializeField] private float _gravityMultiplier = 2f;
@@ -59,6 +56,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private bool _isLaunchingVertiaclly;
         private bool _isLaunchingHorrizontally;
         private Vector3 _launchVector;
+        private float _currentGravityMultiplier;
 
         //Mouse Functionality
         [SerializeField] private MouseLook _mouseLook;
@@ -89,7 +87,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private AudioClip[] _footstepSounds = null;    // an array of footstep sounds that will be randomly selected from.
         [SerializeField] private AudioClip _jumpSound = null;           // the sound played when character leaves the ground.
         [SerializeField] private AudioClip _landSound = null;           // the sound played when character touches back on ground.
-        private AudioSource _audioSource;
+        private static AudioSource _audioSource;
 
         //Not Organized members
         private Camera _camera;
@@ -121,6 +119,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             _isLaunchingHorrizontally = false;
 
             _launchVector = Vector3.zero;
+            _currentGravityMultiplier = _gravityMultiplier;
 
             _startingFov = _camera.fieldOfView;
             _startingCharacterFOV = _characterCamera.fieldOfView;
@@ -153,8 +152,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void Launch(PlayerLaunchEvent eventArgs)
         {
             _launch = true;
-            if(!CompareToZero(eventArgs.LaunchVector.x) || !CompareToZero(eventArgs.LaunchVector.x)) _launchVector = eventArgs.LaunchVector * _horrizontalLaunchSpeed * -1f;
-            else _launchVector = eventArgs.LaunchVector * _verticalLaunchSpeed * -1f;
+            if(!CompareToZero(eventArgs.LaunchVector.x) || !CompareToZero(eventArgs.LaunchVector.z)) _launchVector = eventArgs.LaunchVector * eventArgs.HorizontalLaunchSpeed * -1f;
+            else _launchVector = eventArgs.LaunchVector * eventArgs.VerticalLaunchSpeed * -1f;
         }
 
         private bool CompareToZero(float f, float error = .01f)
@@ -184,6 +183,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 PlayLandingSound();
                 _moveVector.y = 0f;
                 _jumping = false;
+                _currentGravityMultiplier = _gravityMultiplier;
             }
             if (!_characterController.isGrounded && !_jumping && !_isLaunchingVertiaclly && !_isLaunchingHorrizontally && _previouslyGrounded)
             {
@@ -200,6 +200,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 _launch = false;
                 _isLaunchingVertiaclly = !CompareToZero(_launchVector.y);
                 _isLaunchingHorrizontally = !CompareToZero(_launchVector.x) || !CompareToZero(_launchVector.z);
+
+                if(_isLaunchingVertiaclly) _currentGravityMultiplier = _verticalLaunchGravityMultiplier;
+                if(_isLaunchingHorrizontally) _currentGravityMultiplier = _horrizontalLaunchGravityMultiplier;
+
                 _moveVector = _launchVector;
             }
             else if (_characterController.isGrounded)
@@ -218,9 +222,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             }
             else
             {
-                if(_isLaunchingHorrizontally) _moveVector += Physics.gravity*_gravityMultiplier*Time.deltaTime;
-                else if(_isLaunchingVertiaclly) _moveVector += Physics.gravity*_gravityMultiplier*Time.deltaTime;
-                else _moveVector += Physics.gravity*_gravityMultiplier*Time.deltaTime;
+                _moveVector += Physics.gravity*_currentGravityMultiplier*Time.deltaTime;
             }
             _collisionFlags = _characterController.Move(_moveVector*Time.deltaTime);
 
@@ -251,12 +253,11 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             _audioSource.clip = _jumpSound;
             _audioSource.Play();
-        }
-        
+        }   
 
         private void ProgressStepCycle()
         {
-            if (_characterController.velocity.sqrMagnitude > 0 && (_input.x != 0 || _input.y != 0))
+            if (_characterController.velocity.sqrMagnitude > 0 && ((_input.x != 0 || _input.y != 0) || _isLaunchingHorrizontally))
             {
                 _stepCycle += (_characterController.velocity.magnitude + (_speed*(_isWalking ? 1f : _runstepLenghten)))*
                              Time.deltaTime;
@@ -269,7 +270,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             _nextStep = _stepCycle + _stepInterval;
 
-            if (!_isLaunchingHorrizontally) PlayFootStepAudio();
+            PlayFootStepAudio();
         }
 
 
