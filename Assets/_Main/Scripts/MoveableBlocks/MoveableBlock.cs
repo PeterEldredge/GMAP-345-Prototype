@@ -43,6 +43,7 @@ public class MoveableBlock : MonoBehaviour
     [SerializeField] private float _moveTime = .1f;
     [SerializeField] private float _verticalLaunchSpeed = 17f;
     [SerializeField] private float _horizontalLaunchSpeed = 25f;
+    [SerializeField] private List<Transform> _extraTransforms = new List<Transform>();
     
     [HideInInspector] public bool ShowPreview = true;  
     [HideInInspector] public int XMoves, YMoves, ZMoves;
@@ -215,7 +216,43 @@ public class MoveableBlock : MonoBehaviour
         }
         
         //Debug.DrawRay(transform.position + raycastStartAdjustment, raycastDirection, Color.magenta, raycastLength);
-        if(Physics.Raycast(transform.position + raycastStartAdjustment, raycastDirection, out RaycastHit hit, raycastLength, LayerMask.GetMask("Player")))
+        if(Physics.Raycast(transform.position + raycastStartAdjustment, raycastDirection, out RaycastHit hit, raycastLength)) return false;
+        
+        foreach(Transform extraTransform in _extraTransforms)
+        {
+            if(!CheckMovePath(extraTransform, transform.parent, axis, movingVector, raycastLength)) return false;
+        }
+
+        return true;
+    }
+
+    private bool CheckMovePath(Transform extraTransform, Transform parentTrasform, Axis axis, Vector3 movingVector, float movingDistance) //Makes sure the path the cube is going to travel is clear
+    {
+        Vector3 raycastStartAdjustment = Vector3.zero;
+        Vector3 raycastDirection = Vector3.zero;
+        float raycastLength = movingDistance;
+        
+        switch(axis)
+        {
+            case Axis.X:
+                raycastStartAdjustment += new Vector3(parentTrasform.localScale.x / 2 * movingVector.x - Mathf.Sign(movingVector.x) * .05f, parentTrasform.localScale.y / 2, 0);
+                raycastDirection += extraTransform.right * movingVector.x * parentTrasform.localScale.x;
+                raycastLength += extraTransform.localScale.x;
+                break;
+            case Axis.Y:
+                raycastStartAdjustment += new Vector3(0, parentTrasform.localScale.y / 2 * movingVector.y + parentTrasform.localScale.y / 2  - Mathf.Sign(movingVector.y) * .05f, 0);
+                raycastDirection += extraTransform.up * movingVector.y * parentTrasform.localScale.y;
+                raycastLength += extraTransform.localScale.y;
+                break;
+            case Axis.Z:
+                raycastStartAdjustment += new Vector3(0, parentTrasform.localScale.y / 2, parentTrasform.localScale.z / 2 * movingVector.z  - Mathf.Sign(movingVector.z) * .05f);
+                raycastDirection += extraTransform.forward * movingVector.z * parentTrasform.localScale.z;
+                raycastLength += extraTransform.localScale.z;
+                break;
+        }
+        
+        //Debug.DrawRay(extraTransform.position + raycastStartAdjustment, raycastDirection, Color.magenta, raycastLength);
+        if(Physics.Raycast(extraTransform.position + raycastStartAdjustment, raycastDirection, out RaycastHit hit, raycastLength))
         {
             return false;
         }

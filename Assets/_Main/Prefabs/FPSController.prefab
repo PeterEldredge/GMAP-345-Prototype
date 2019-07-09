@@ -4047,7 +4047,7 @@ GameObject:
   - component: {fileID: 6294911808736314809}
   - component: {fileID: 6294911808736314808}
   - component: {fileID: 7300646737437974839}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: FPSController
   m_TagString: Player
   m_Icon: {fileID: 0}

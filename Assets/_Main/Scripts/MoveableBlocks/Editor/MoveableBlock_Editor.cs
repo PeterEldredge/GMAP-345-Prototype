@@ -18,9 +18,9 @@ public class MoveableBlock_Editor : Editor
 
         EditorGUILayout.Space();
 
-        moveableBlock.XMoves = EditorGUILayout.IntSlider("Total X Axis Moves", moveableBlock.XMoves, 0, 10);
-        moveableBlock.YMoves = EditorGUILayout.IntSlider("Total Y Axis Moves", moveableBlock.YMoves, 0, 10);
-        moveableBlock.ZMoves = EditorGUILayout.IntSlider("Total Z Axis Moves", moveableBlock.ZMoves, 0, 10);
+        moveableBlock.XMoves = EditorGUILayout.IntSlider("Total X Axis Moves", moveableBlock.XMoves, 0, 20);
+        moveableBlock.YMoves = EditorGUILayout.IntSlider("Total Y Axis Moves", moveableBlock.YMoves, 0, 20);
+        moveableBlock.ZMoves = EditorGUILayout.IntSlider("Total Z Axis Moves", moveableBlock.ZMoves, 0, 20);
 
         EditorGUILayout.Space();
 

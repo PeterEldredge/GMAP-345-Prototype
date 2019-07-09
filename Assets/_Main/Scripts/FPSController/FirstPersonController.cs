@@ -367,6 +367,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void GetHorrizontalLaunchInput()
         {
+            if(_characterController.velocity.magnitude < 1f) _isLaunchingHorrizontally = false;
             // Read input
             float horizontal = Input.GetAxis("Horizontal");
             float vertical = Input.GetAxis("Vertical");
