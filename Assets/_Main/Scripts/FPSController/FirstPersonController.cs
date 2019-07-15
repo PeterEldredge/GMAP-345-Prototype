@@ -29,8 +29,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
         //Movement
         [SerializeField] private float _stickToGroundForce = 10f;
         [SerializeField] private float _aimMoveSpeed = 3f;  
-        [SerializeField] private float _walkSpeed = 5f;
-        [SerializeField] private float _runSpeed = 10f;
+        [SerializeField] private float _walkSpeed = 7f;
+        [SerializeField] private float _runAnimationSpeed = 10f;
+        //[SerializeField] private float _runSpeed = 10f;
         [SerializeField] [Range(0f, 1f)] private float _runstepLenghten = .7f;
         private bool _isWalking = false;
         private float _moveAngle; //The angle which the player is moving
@@ -326,7 +327,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             _speedInFacingDirection = _speed * Mathf.Cos((_facingAngle - _moveAngle) * Mathf.Deg2Rad);
 
-            if(_speedInFacingDirection > 7 && _characterController.isGrounded) _handAnimator.SetBool("IsRunning", true);
+            if(_speedInFacingDirection > _runAnimationSpeed && _characterController.isGrounded) _handAnimator.SetBool("IsRunning", true);
             else _handAnimator.SetBool("IsRunning", false);
         }
 
@@ -341,8 +342,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             _isWalking = !Input.GetKey(KeyCode.LeftShift);
 
-            _speed = _isWalking ? _walkSpeed : _runSpeed;
-            //}
+            _speed = _walkSpeed;
+            //_speed = _isWalking ? _walkSpeed : _runSpeed;
 
             _input = new Vector2(horizontal, vertical);
 
@@ -410,7 +411,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             
             _speed = Mathf.Sqrt(_moveVector.x * _moveVector.x + _moveVector.z * _moveVector.z);
 
-            if(_speed < _runSpeed && (!CompareToZero(_input.magnitude)))
+            if(_speed < _walkSpeed && (!CompareToZero(_input.magnitude)))
             {
                 _isLaunchingHorrizontally = false;
             }

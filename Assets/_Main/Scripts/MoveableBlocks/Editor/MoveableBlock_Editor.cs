@@ -28,9 +28,12 @@ public class MoveableBlock_Editor : Editor
         moveableBlock.YPos = EditorGUILayout.IntSlider("Y Starting Position", moveableBlock.YPos, 0, moveableBlock.YMoves);
         moveableBlock.ZPos = EditorGUILayout.IntSlider("Z Starting Position", moveableBlock.ZPos, 0, moveableBlock.ZMoves);
 
-        moveableBlock.transform.localPosition = new Vector3(moveableBlock.XPos * moveableBlock.transform.localScale.x,
-            moveableBlock.YPos * moveableBlock.transform.localScale.y,
-             moveableBlock.ZPos * moveableBlock.transform.localScale.z);
+        if(!Application.isPlaying)
+        {
+            moveableBlock.transform.localPosition = new Vector3(moveableBlock.XPos * moveableBlock.MoveDistance / moveableBlock.transform.parent.localScale.x,
+             moveableBlock.YPos * moveableBlock.MoveDistance / moveableBlock.transform.parent.localScale.y,
+              moveableBlock.ZPos * moveableBlock.MoveDistance / moveableBlock.transform.parent.localScale.z);
+        }
 
         if(GUI.changed)
         {
@@ -48,20 +51,23 @@ public class MoveableBlock_Editor : Editor
             Vector3[] yPoints = new Vector3[2];
             Vector3[] zPoints = new Vector3[2];
 
-            xPoints[0] = moveableBlock.transform.TransformPoint(new Vector3((moveableBlock.transform.localPosition.x - 2 * moveableBlock.XPos) * moveableBlock.transform.localScale.x, (moveableBlock.transform.localPosition.y - moveableBlock.YPos) * moveableBlock.transform.localScale.y + .5f * moveableBlock.transform.localScale.y, (moveableBlock.transform.localPosition.z - moveableBlock.ZPos) * moveableBlock.transform.localScale.z));
-            xPoints[1] = moveableBlock.transform.TransformPoint(new Vector3((moveableBlock.XMoves - moveableBlock.XPos) * moveableBlock.transform.localScale.x, (moveableBlock.transform.localPosition.y - moveableBlock.YPos) * moveableBlock.transform.localScale.y + .5f * moveableBlock.transform.localScale.y, (moveableBlock.transform.localPosition.z - moveableBlock.ZPos) * moveableBlock.transform.localScale.z));
+            if(!Application.isPlaying)
+            {
+                xPoints[0] = new Vector3(moveableBlock.transform.position.x - (moveableBlock.XPos * moveableBlock.MoveDistance), moveableBlock.transform.position.y + (moveableBlock.transform.parent.localScale.y / 2), moveableBlock.transform.position.z);
+                xPoints[1] = new Vector3(moveableBlock.transform.position.x + ((moveableBlock.XMoves - moveableBlock.XPos) * moveableBlock.MoveDistance), moveableBlock.transform.position.y + (moveableBlock.transform.parent.localScale.y / 2), moveableBlock.transform.position.z);
 
-            yPoints[0] = moveableBlock.transform.TransformPoint(new Vector3((moveableBlock.transform.localPosition.x - moveableBlock.XPos) * moveableBlock.transform.localScale.x, (moveableBlock.transform.localPosition.y - 2 * moveableBlock.YPos) * moveableBlock.transform.localScale.y + .5f * moveableBlock.transform.localScale.y, (moveableBlock.transform.localPosition.z - moveableBlock.ZPos) * moveableBlock.transform.localScale.z));
-            yPoints[1] = moveableBlock.transform.TransformPoint(new Vector3((moveableBlock.transform.localPosition.x - moveableBlock.XPos) * moveableBlock.transform.localScale.x, (moveableBlock.YMoves - moveableBlock.YPos) * moveableBlock.transform.localScale.y + .5f * moveableBlock.transform.localScale.y, (moveableBlock.transform.localPosition.z - moveableBlock.ZPos) * moveableBlock.transform.localScale.z));
+                yPoints[0] = new Vector3(moveableBlock.transform.position.x, moveableBlock.transform.position.y + (moveableBlock.transform.parent.localScale.y / 2) - (moveableBlock.YPos * moveableBlock.MoveDistance), moveableBlock.transform.position.z);
+                yPoints[1] = new Vector3(moveableBlock.transform.position.x, moveableBlock.transform.position.y + (moveableBlock.transform.parent.localScale.y / 2) + ((moveableBlock.YMoves - moveableBlock.YPos) * moveableBlock.MoveDistance), moveableBlock.transform.position.z);
 
-            zPoints[0] = moveableBlock.transform.TransformPoint(new Vector3((moveableBlock.transform.localPosition.x - moveableBlock.XPos) * moveableBlock.transform.localScale.x, (moveableBlock.transform.localPosition.y - moveableBlock.YPos) * moveableBlock.transform.localScale.y + .5f * moveableBlock.transform.localScale.y, (moveableBlock.transform.localPosition.z - 2 * moveableBlock.ZPos) * moveableBlock.transform.localScale.z));
-            zPoints[1] = moveableBlock.transform.TransformPoint(new Vector3((moveableBlock.transform.localPosition.x - moveableBlock.XPos) * moveableBlock.transform.localScale.x, (moveableBlock.transform.localPosition.y - moveableBlock.YPos) * moveableBlock.transform.localScale.y + .5f * moveableBlock.transform.localScale.y, (moveableBlock.ZMoves - moveableBlock.ZPos) * moveableBlock.transform.localScale.z));
+                zPoints[0] = new Vector3(moveableBlock.transform.position.x, moveableBlock.transform.position.y + (moveableBlock.transform.parent.localScale.y / 2), moveableBlock.transform.position.z - (moveableBlock.ZPos * moveableBlock.MoveDistance));
+                zPoints[1] = new Vector3(moveableBlock.transform.position.x, moveableBlock.transform.position.y + (moveableBlock.transform.parent.localScale.y / 2), moveableBlock.transform.position.z + ((moveableBlock.ZMoves - moveableBlock.ZPos) * moveableBlock.MoveDistance));
+            }
 
 			Handles.color = Color.magenta;
 			
-            Handles.DrawAAPolyLine(15, xPoints);
-            Handles.DrawAAPolyLine(15, yPoints);
-            Handles.DrawAAPolyLine(15, zPoints);
+            Handles.DrawAAPolyLine(12, xPoints);
+            Handles.DrawAAPolyLine(12, yPoints);
+            Handles.DrawAAPolyLine(12, zPoints);
         }
     }
 }

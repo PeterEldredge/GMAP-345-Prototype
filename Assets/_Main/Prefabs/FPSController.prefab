@@ -4103,10 +4103,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _stickToGroundForce: 10
   _aimMoveSpeed: 3
-  _walkSpeed: 5
-  _runSpeed: 10
+  _walkSpeed: 7
+  _runAnimationSpeed: 10
   _runstepLenghten: 0.7
-  _jumpSpeed: 10
+  _jumpSpeed: 9
   _horrizontalLaunchAirDampening: 6
   _horrizontalLaunchGroundDampening: 10
   _launchControl: 5
@@ -4122,10 +4122,10 @@ MonoBehaviour:
     MaximumX: 90
     smoothFrames: 2
     IsAiming: 0
-  m_UseHeadBob: 0
+  m_UseHeadBob: 1
   _headBob:
-    HorizontalBobRange: 0.1
-    VerticalBobRange: 0.1
+    HorizontalBobRange: 0.05
+    VerticalBobRange: 0.05
     Bobcurve:
       serializedVersion: 2
       m_Curve:
@@ -4177,7 +4177,7 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    VerticalToHorizontalRatio: 2
+    VerticalToHorizontalRatio: 1
   _jumpBob:
     BobDuration: 0.2
     BobAmount: 0.1

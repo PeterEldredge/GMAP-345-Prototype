@@ -43,16 +43,19 @@ public class MoveableBlock : MonoBehaviour
     [SerializeField] private float _moveTime = .1f;
     [SerializeField] private float _verticalLaunchSpeed = 17f;
     [SerializeField] private float _horizontalLaunchSpeed = 25f;
+    [Range(1, 10)] public int MoveDistance = 2;
     [SerializeField] private List<Transform> _extraTransforms = new List<Transform>();
-    
+
     [HideInInspector] public bool ShowPreview = true;  
     [HideInInspector] public int XMoves, YMoves, ZMoves;
     [HideInInspector] public int XPos, YPos, ZPos;
 
     private bool _moving;
+    private float _moveDistance;
     private Vector3Int _numOfMoves;
-    private Vector3Int _currentLocation;
-    private Vector3Int _currentNormalMovingVector;
+    private Vector3Int _currentRelativeLocation;
+    private Vector3 _currentLocation;
+    private Vector3 _currentNormalMovingVector;
     private Vector3Int _startingLocation;
 
     private void Awake()
@@ -60,9 +63,11 @@ public class MoveableBlock : MonoBehaviour
         _moving = false;
         
         _numOfMoves = new Vector3Int(XMoves, YMoves, ZMoves);
-        _currentLocation = new Vector3Int(XPos, YPos, ZPos);
-        _currentNormalMovingVector = Vector3Int.zero;
-        _startingLocation = Vector3Int.RoundToInt(_currentLocation - transform.localPosition);
+        _moveDistance = MoveDistance;
+        _currentRelativeLocation = new Vector3Int(XPos, YPos, ZPos);
+        _currentLocation = new Vector3(XPos, YPos, ZPos);
+        _currentNormalMovingVector = Vector3.zero;
+        _startingLocation = Vector3Int.RoundToInt(_currentRelativeLocation - transform.localPosition);
 
         SetAllColors();
     }
@@ -103,13 +108,13 @@ public class MoveableBlock : MonoBehaviour
         switch(axis)
         {
             case Axis.X:
-                SetAxisColors(_xPos, _xNeg, _currentLocation.x, _numOfMoves.x);
+                SetAxisColors(_xPos, _xNeg, _currentRelativeLocation.x, _numOfMoves.x);
                 break;
             case Axis.Y:
-                SetAxisColors(_yPos, _yNeg, _currentLocation.y, _numOfMoves.y);
+                SetAxisColors(_yPos, _yNeg, _currentRelativeLocation.y, _numOfMoves.y);
                 break;
             case Axis.Z:
-                SetAxisColors(_zPos, _zNeg, _currentLocation.z, _numOfMoves.z);
+                SetAxisColors(_zPos, _zNeg, _currentRelativeLocation.z, _numOfMoves.z);
                 break;
         }
     }
@@ -132,7 +137,7 @@ public class MoveableBlock : MonoBehaviour
 
     private void SetAxisColors(Renderer pos, Renderer neg, float coloringLocation, int numOfMoves)
     {   
-        byte posColor = (byte)(255 * ((numOfMoves - coloringLocation) / numOfMoves));
+        byte posColor = (byte)(255 * ((numOfMoves - coloringLocation) / (numOfMoves)));
         byte negColor = (byte)(255 * ((coloringLocation) / numOfMoves));
 
         pos.material.color = new Color32(255, posColor, posColor, 255);
@@ -151,23 +156,28 @@ public class MoveableBlock : MonoBehaviour
         int fireTypeMultiplier = 1;
         if(hitArgs.FireTypeArg == WeaponFiredEventArgs.FireType.Pull) fireTypeMultiplier = -1;
 
-        _currentNormalMovingVector = Vector3Int.RoundToInt(hitArgs.Hit.transform.InverseTransformDirection(hitArgs.Hit.normal * -1f));
-        Vector3Int templocation = _currentLocation + _currentNormalMovingVector * fireTypeMultiplier;
+        _currentNormalMovingVector = hitArgs.Hit.transform.InverseTransformDirection(hitArgs.Hit.normal * -1f);
+        Vector3Int templocation = _currentRelativeLocation + Vector3Int.RoundToInt(new Vector3(_currentNormalMovingVector.x * fireTypeMultiplier, 
+                                                                                                _currentNormalMovingVector.y * fireTypeMultiplier, 
+                                                                                                 _currentNormalMovingVector.z * fireTypeMultiplier));
         Axis axis = Axis.NONE;
 
         if(_currentNormalMovingVector.x != 0  && templocation.x >= 0 && templocation.x <= _numOfMoves.x && CheckMovePath(Axis.X, _currentNormalMovingVector * fireTypeMultiplier))
         {
-            _currentLocation.x = templocation.x;
+            _currentRelativeLocation.x = templocation.x;
+            _currentLocation.x = (_currentRelativeLocation.x - _startingLocation.x) * MoveDistance / transform.parent.localScale.x;
             axis = Axis.X;
         }
         else if(_currentNormalMovingVector.y != 0 && templocation.y >= 0 && templocation.y <= _numOfMoves.y && CheckMovePath(Axis.Y, _currentNormalMovingVector* fireTypeMultiplier))
         {
-            _currentLocation.y = templocation.y;
+            _currentRelativeLocation.y = templocation.y;
+            _currentLocation.y = (_currentRelativeLocation.y - _startingLocation.y) * MoveDistance / transform.parent.localScale.y;
             axis = Axis.Y;
         }
         else if(_currentNormalMovingVector.z != 0 && templocation.z >= 0 && templocation.z <= _numOfMoves.z && CheckMovePath(Axis.Z, _currentNormalMovingVector * fireTypeMultiplier))
         {
-            _currentLocation.z = templocation.z;
+            _currentRelativeLocation.z = templocation.z;
+            _currentLocation.z = (_currentRelativeLocation.z - _startingLocation.x) * MoveDistance / transform.parent.localScale.z;
             axis = Axis.Z;
         }
 
@@ -182,7 +192,7 @@ public class MoveableBlock : MonoBehaviour
                 AudioManager.Instance.PlayPushSound();
             }
 
-            StartCoroutine(MovePiece(transform.localPosition, _currentLocation - _startingLocation, axis));
+            StartCoroutine(MovePiece(transform.localPosition, _currentLocation, axis));
         }
         else
         {
@@ -200,22 +210,22 @@ public class MoveableBlock : MonoBehaviour
         {
             case Axis.X:
                 raycastStartAdjustment += new Vector3(transform.parent.localScale.x / 2 * movingVector.x - Mathf.Sign(movingVector.x) * .05f, transform.parent.localScale.y / 2, 0);
-                raycastDirection += transform.right * movingVector.x * transform.parent.localScale.x;
-                raycastLength = transform.localScale.x;
+                raycastDirection += transform.right * movingVector.x;
+                raycastLength = _moveDistance;
                 break;
             case Axis.Y:
                 raycastStartAdjustment += new Vector3(0, transform.parent.localScale.y / 2 * movingVector.y + transform.parent.localScale.y / 2  - Mathf.Sign(movingVector.y) * .05f, 0);
-                raycastDirection += transform.up * movingVector.y * transform.parent.localScale.y;
-                raycastLength = transform.localScale.y;
+                raycastDirection += transform.up * movingVector.y;
+                raycastLength = _moveDistance;
                 break;
             case Axis.Z:
                 raycastStartAdjustment += new Vector3(0, transform.parent.localScale.y / 2, transform.parent.localScale.z / 2 * movingVector.z  - Mathf.Sign(movingVector.z) * .05f);
-                raycastDirection += transform.forward * movingVector.z * transform.parent.localScale.z;
-                raycastLength = transform.localScale.z;
+                raycastDirection += transform.forward * movingVector.z;
+                raycastLength = _moveDistance;
                 break;
         }
         
-        //Debug.DrawRay(transform.position + raycastStartAdjustment, raycastDirection, Color.magenta, raycastLength);
+        Debug.DrawRay(transform.position + raycastStartAdjustment, raycastDirection * raycastLength, Color.magenta, 1);
         if(Physics.Raycast(transform.position + raycastStartAdjustment, raycastDirection, out RaycastHit hit, raycastLength)) return false;
         
         foreach(Transform extraTransform in _extraTransforms)
@@ -251,7 +261,7 @@ public class MoveableBlock : MonoBehaviour
                 break;
         }
         
-        //Debug.DrawRay(extraTransform.position + raycastStartAdjustment, raycastDirection, Color.magenta, raycastLength);
+        Debug.DrawRay(extraTransform.position + raycastStartAdjustment, raycastDirection, Color.magenta, raycastLength);
         if(Physics.Raycast(extraTransform.position + raycastStartAdjustment, raycastDirection, out RaycastHit hit, raycastLength))
         {
             return false;
@@ -260,16 +270,15 @@ public class MoveableBlock : MonoBehaviour
         return true;
     }
 
-    private IEnumerator MovePiece(Vector3 startingLocation, Vector3Int endingLocation, Axis axis) //Controls piece movement and smooth color changes
+    private IEnumerator MovePiece(Vector3 startingLocation, Vector3 endingLocation, Axis axis) //Controls piece movement and smooth color changes
     {
         float timer = 0f;
 
         _moving = true;
-        Vector3 endingLocationF = new Vector3(endingLocation.x, endingLocation.y, endingLocation.z);
 
         while(timer < _moveTime)
         {
-            transform.localPosition = Vector3.Lerp(startingLocation, endingLocationF, timer / _moveTime);
+            transform.localPosition = Vector3.Lerp(startingLocation, endingLocation, timer / _moveTime);
             SetAxisColors(axis, transform.localPosition - _startingLocation);
             timer += Time.deltaTime;
             yield return null;
