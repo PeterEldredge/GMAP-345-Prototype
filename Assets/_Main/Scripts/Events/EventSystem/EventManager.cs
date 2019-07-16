@@ -39,6 +39,7 @@ public static class EventManager
             }
         }
     }
+    
 
     public static void RemoveListener<T>(Action<T> listener) where T : IGameEvent
     {

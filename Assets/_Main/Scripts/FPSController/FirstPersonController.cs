@@ -175,7 +175,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void Update()
         {
             UpdateMembers();
-
+            UpdateParent();
             RotateView();
 
             if (!_previouslyGrounded && _characterController.isGrounded && !_launch)
@@ -239,6 +239,20 @@ namespace UnityStandardAssets.Characters.FirstPerson
             if (!_jump && _characterController.isGrounded)
             {
                 _jump = Input.GetButtonDown("Jump");
+            }
+        }
+
+        private void UpdateParent()
+        {
+            //Needs to be grouped with other raycasts to reduce the number of calls
+            RaycastHit hitInfo;
+            if(Physics.SphereCast(transform.position, _characterController.radius / 2, Vector3.down, out hitInfo, _characterController.height/2f, Physics.AllLayers, QueryTriggerInteraction.Ignore))
+            {
+                transform.parent = hitInfo.transform;
+            }
+            else
+            {
+                transform.parent = null;
             }
         }
 
