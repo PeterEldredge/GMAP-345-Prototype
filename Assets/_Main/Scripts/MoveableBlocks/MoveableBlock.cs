@@ -66,7 +66,7 @@ public class MoveableBlock : MonoBehaviour
         _currentRelativeLocation = new Vector3Int(XPos, YPos, ZPos);
         _currentLocation = new Vector3(XPos, YPos, ZPos);
         _currentNormalMovingVector = Vector3.zero;
-        _startingLocation = Vector3Int.RoundToInt(_currentRelativeLocation - transform.localPosition);
+        _startingLocation = Vector3Int.RoundToInt(_currentRelativeLocation - transform.parent.localPosition);
 
         SetAllColors();
     }
@@ -191,7 +191,7 @@ public class MoveableBlock : MonoBehaviour
                 AudioManager.Instance.PlayPushSound();
             }
 
-            StartCoroutine(MovePiece(transform.localPosition, _currentLocation, axis));
+            StartCoroutine(MovePiece(transform.parent.localPosition, _currentLocation, axis));
         }
         else
         {
@@ -208,23 +208,23 @@ public class MoveableBlock : MonoBehaviour
         switch(axis)
         {
             case Axis.X:
-                raycastStartAdjustment += new Vector3(transform.parent.localScale.x / 2 * movingVector.x - Mathf.Sign(movingVector.x) * .05f, transform.parent.localScale.y / 2, 0);
+                raycastStartAdjustment += new Vector3(transform.localScale.x / 2 * movingVector.x - Mathf.Sign(movingVector.x) * .05f, transform.localScale.y / 2, 0);
                 raycastDirection += transform.right * movingVector.x;
                 raycastLength = _moveDistance;
                 break;
             case Axis.Y:
-                raycastStartAdjustment += new Vector3(0, transform.parent.localScale.y / 2 * movingVector.y + transform.parent.localScale.y / 2  - Mathf.Sign(movingVector.y) * .05f, 0);
+                raycastStartAdjustment += new Vector3(0, transform.localScale.y / 2 * movingVector.y + transform.localScale.y / 2  - Mathf.Sign(movingVector.y) * .05f, 0);
                 raycastDirection += transform.up * movingVector.y;
                 raycastLength = _moveDistance;
                 break;
             case Axis.Z:
-                raycastStartAdjustment += new Vector3(0, transform.parent.localScale.y / 2, transform.parent.localScale.z / 2 * movingVector.z  - Mathf.Sign(movingVector.z) * .05f);
+                raycastStartAdjustment += new Vector3(0, transform.localScale.y / 2, transform.localScale.z / 2 * movingVector.z  - Mathf.Sign(movingVector.z) * .05f);
                 raycastDirection += transform.forward * movingVector.z;
                 raycastLength = _moveDistance;
                 break;
         }
         
-        //Debug.DrawRay(transform.position + raycastStartAdjustment, raycastDirection * raycastLength, Color.magenta, 1);
+        Debug.DrawRay(transform.position + raycastStartAdjustment, raycastDirection * raycastLength, Color.magenta, 1);
         if(Physics.Raycast(transform.position + raycastStartAdjustment, raycastDirection, out RaycastHit hit, raycastLength)) return false;
 
         return true;
@@ -238,13 +238,13 @@ public class MoveableBlock : MonoBehaviour
 
         while(timer < _moveTime)
         {
-            transform.localPosition = Vector3.Lerp(startingLocation, endingLocation, timer / _moveTime);
-            SetAxisColors(axis, new Vector3(transform.localPosition.x * transform.parent.localScale.x / _moveDistance, transform.localPosition.y * transform.parent.localScale.y / _moveDistance, transform.localPosition.z * transform.parent.localScale.z / _moveDistance)); //I hate this line
+            transform.parent.localPosition = Vector3.Lerp(startingLocation, endingLocation, timer / _moveTime);
+            SetAxisColors(axis, new Vector3(transform.parent.localPosition.x / _moveDistance, transform.parent.localPosition.y / _moveDistance, transform.parent.localPosition.z / _moveDistance)); //I hate this line
             timer += Time.deltaTime;
             yield return null;
         }
 
-        transform.localPosition = endingLocation;
+        transform.parent.localPosition = endingLocation;
         SetAxisColors(axis, _currentRelativeLocation);
         _moving = false;
         _currentNormalMovingVector = Vector3Int.zero;

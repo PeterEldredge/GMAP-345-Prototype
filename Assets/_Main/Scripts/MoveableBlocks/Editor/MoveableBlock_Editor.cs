@@ -30,9 +30,7 @@ public class MoveableBlock_Editor : Editor
 
         if(!Application.isPlaying)
         {
-            moveableBlock.transform.localPosition = new Vector3(moveableBlock.XPos * moveableBlock.MoveDistance / moveableBlock.transform.parent.localScale.x,
-             moveableBlock.YPos * moveableBlock.MoveDistance / moveableBlock.transform.parent.localScale.y,
-              moveableBlock.ZPos * moveableBlock.MoveDistance / moveableBlock.transform.parent.localScale.z);
+            moveableBlock.transform.parent.localPosition = new Vector3(moveableBlock.XPos * moveableBlock.MoveDistance, moveableBlock.YPos * moveableBlock.MoveDistance, moveableBlock.ZPos * moveableBlock.MoveDistance);
         }
 
         if(GUI.changed)
@@ -53,14 +51,14 @@ public class MoveableBlock_Editor : Editor
 
             if(!Application.isPlaying)
             {
-                xPoints[0] = new Vector3(moveableBlock.transform.position.x - (moveableBlock.XPos * moveableBlock.MoveDistance), moveableBlock.transform.position.y + (moveableBlock.transform.parent.localScale.y / 2), moveableBlock.transform.position.z);
-                xPoints[1] = new Vector3(moveableBlock.transform.position.x + ((moveableBlock.XMoves - moveableBlock.XPos) * moveableBlock.MoveDistance), moveableBlock.transform.position.y + (moveableBlock.transform.parent.localScale.y / 2), moveableBlock.transform.position.z);
+                xPoints[0] = new Vector3(moveableBlock.transform.parent.position.x - (moveableBlock.XPos * moveableBlock.MoveDistance), moveableBlock.transform.parent.position.y + (moveableBlock.transform.localScale.y / 2), moveableBlock.transform.parent.position.z);
+                xPoints[1] = new Vector3(moveableBlock.transform.parent.position.x + ((moveableBlock.XMoves - moveableBlock.XPos) * moveableBlock.MoveDistance), moveableBlock.transform.parent.position.y + (moveableBlock.transform.localScale.y / 2), moveableBlock.transform.parent.position.z);
 
-                yPoints[0] = new Vector3(moveableBlock.transform.position.x, moveableBlock.transform.position.y + (moveableBlock.transform.parent.localScale.y / 2) - (moveableBlock.YPos * moveableBlock.MoveDistance), moveableBlock.transform.position.z);
-                yPoints[1] = new Vector3(moveableBlock.transform.position.x, moveableBlock.transform.position.y + (moveableBlock.transform.parent.localScale.y / 2) + ((moveableBlock.YMoves - moveableBlock.YPos) * moveableBlock.MoveDistance), moveableBlock.transform.position.z);
+                yPoints[0] = new Vector3(moveableBlock.transform.parent.position.x, moveableBlock.transform.parent.position.y + (moveableBlock.transform.localScale.y / 2) - (moveableBlock.YPos * moveableBlock.MoveDistance), moveableBlock.transform.parent.position.z);
+                yPoints[1] = new Vector3(moveableBlock.transform.parent.position.x, moveableBlock.transform.parent.position.y + (moveableBlock.transform.localScale.y / 2) + ((moveableBlock.YMoves - moveableBlock.YPos) * moveableBlock.MoveDistance), moveableBlock.transform.parent.position.z);
 
-                zPoints[0] = new Vector3(moveableBlock.transform.position.x, moveableBlock.transform.position.y + (moveableBlock.transform.parent.localScale.y / 2), moveableBlock.transform.position.z - (moveableBlock.ZPos * moveableBlock.MoveDistance));
-                zPoints[1] = new Vector3(moveableBlock.transform.position.x, moveableBlock.transform.position.y + (moveableBlock.transform.parent.localScale.y / 2), moveableBlock.transform.position.z + ((moveableBlock.ZMoves - moveableBlock.ZPos) * moveableBlock.MoveDistance));
+                zPoints[0] = new Vector3(moveableBlock.transform.parent.position.x, moveableBlock.transform.parent.position.y + (moveableBlock.transform.localScale.y / 2), moveableBlock.transform.parent.position.z - (moveableBlock.ZPos * moveableBlock.MoveDistance));
+                zPoints[1] = new Vector3(moveableBlock.transform.parent.position.x, moveableBlock.transform.parent.position.y + (moveableBlock.transform.localScale.y / 2), moveableBlock.transform.parent.position.z + ((moveableBlock.ZMoves - moveableBlock.ZPos) * moveableBlock.MoveDistance));
             }
 
 			Handles.color = Color.magenta;
