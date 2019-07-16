@@ -136,8 +136,8 @@ public class MoveableBlock : MonoBehaviour
 
     private void SetAxisColors(Renderer pos, Renderer neg, float coloringLocation, int numOfMoves)
     {   
-        byte posColor = (byte)(255 * ((numOfMoves - coloringLocation) / numOfMoves));
-        byte negColor = (byte)(255 * ((coloringLocation) / numOfMoves));
+        byte posColor = (byte)(255 * (numOfMoves - coloringLocation) / numOfMoves);
+        byte negColor = (byte)(255 * (coloringLocation) / numOfMoves);
 
         pos.material.color = new Color32(255, posColor, posColor, 255);
         neg.material.color = new Color32(255, negColor, negColor, 255);
@@ -239,7 +239,7 @@ public class MoveableBlock : MonoBehaviour
         while(timer < _moveTime)
         {
             transform.localPosition = Vector3.Lerp(startingLocation, endingLocation, timer / _moveTime);
-            SetAxisColors(axis, new Vector3(transform.localPosition.x * transform.parent.localScale.x / _moveDistance, transform.localPosition.y * transform.parent.localScale.y / _moveDistance, transform.localPosition.z * transform.parent.localScale.z / _moveDistance) - _startingLocation); //I hate this line
+            SetAxisColors(axis, new Vector3(transform.localPosition.x * transform.parent.localScale.x / _moveDistance, transform.localPosition.y * transform.parent.localScale.y / _moveDistance, transform.localPosition.z * transform.parent.localScale.z / _moveDistance)); //I hate this line
             timer += Time.deltaTime;
             yield return null;
         }

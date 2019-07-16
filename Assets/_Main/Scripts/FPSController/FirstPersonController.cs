@@ -244,16 +244,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void UpdateParent()
         {
-            //Needs to be grouped with other raycasts to reduce the number of calls
-            RaycastHit hitInfo;
-            if(Physics.SphereCast(transform.position, _characterController.radius / 2, Vector3.down, out hitInfo, _characterController.height/2f, Physics.AllLayers, QueryTriggerInteraction.Ignore))
-            {
-                transform.parent = hitInfo.transform;
-            }
-            else
-            {
-                transform.parent = null;
-            }
+            
         }
 
         private void PlayLandingSound()
