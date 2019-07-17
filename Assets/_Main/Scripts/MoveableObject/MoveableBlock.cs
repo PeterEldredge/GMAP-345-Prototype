@@ -2,18 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct HitData
-{
-    public WeaponFiredEventArgs.FireType FireTypeArg { get; private set; }
-    public RaycastHit Hit { get; private set; }
-
-    public HitData(WeaponFiredEventArgs.FireType fireType, RaycastHit hit)
-    {
-        FireTypeArg = fireType;
-        Hit = hit;
-    }
-}
-
 public class MoveableBlock : MonoBehaviour
 {
     private enum Axis
@@ -42,16 +30,20 @@ public class MoveableBlock : MonoBehaviour
     private Vector3 _currentNormalMovingVector;
     private Vector3Int _startingLocation;
 
+    private List<MoveablePlane> _moveablePlanes;
+
     private void Awake()
     {
         _moving = false;
-        
+
         _numOfMoves = new Vector3Int(XMoves, YMoves, ZMoves);
         _moveDistance = MoveDistance;
         _currentRelativeLocation = new Vector3Int(XPos, YPos, ZPos);
         _currentLocation = new Vector3(XPos, YPos, ZPos);
         _currentNormalMovingVector = Vector3.zero;
         _startingLocation = Vector3Int.RoundToInt(_currentRelativeLocation - transform.parent.localPosition);
+
+        _moveablePlanes = new List<MoveablePlane>();
 
         SetAllColors();
     }
@@ -140,7 +132,7 @@ public class MoveableBlock : MonoBehaviour
         int fireTypeMultiplier = 1;
         if(hitArgs.FireTypeArg == WeaponFiredEventArgs.FireType.Pull) fireTypeMultiplier = -1;
 
-        _currentNormalMovingVector = hitArgs.Hit.transform.InverseTransformDirection(hitArgs.Hit.normal * -1f);
+        //_currentNormalMovingVector = hitArgs.Hit.transform.InverseTransformDirection(hitArgs.Hit.normal * -1f);
         Vector3Int templocation = _currentRelativeLocation + Vector3Int.RoundToInt(new Vector3(_currentNormalMovingVector.x * fireTypeMultiplier, 
                                                                                                 _currentNormalMovingVector.y * fireTypeMultiplier, 
                                                                                                  _currentNormalMovingVector.z * fireTypeMultiplier));
@@ -167,14 +159,7 @@ public class MoveableBlock : MonoBehaviour
 
         if(axis != Axis.NONE) 
         {
-            if(hitArgs.FireTypeArg == WeaponFiredEventArgs.FireType.Pull)
-            {
-                AudioManager.Instance.PlayPullSound();
-            }
-            else
-            {
-                AudioManager.Instance.PlayPushSound();
-            }
+            
 
             StartCoroutine(MovePiece(transform.parent.localPosition, _currentLocation, axis));
         }

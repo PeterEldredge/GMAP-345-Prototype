@@ -132,6 +132,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _range: 50
+  _fireRateCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.3
+      inSlope: -0.157293
+      outSlope: -0.157293
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.04774154
+    - serializedVersion: 3
+      time: 1
+      value: 0.08
+      inSlope: -0.38073823
+      outSlope: -0.38073823
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.07442123
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _fireRateSteps: 4
 --- !u!1 &1407421018
 GameObject:
   m_ObjectHideFlags: 0
@@ -4101,7 +4126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05ec5cf00ca181d45a42ba1870e148c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _stickToGroundForce: 10
+  _stickToGroundForce: 1
   _aimMoveSpeed: 3
   _walkSpeed: 7
   _runAnimationSpeed: 10
@@ -4122,7 +4147,7 @@ MonoBehaviour:
     MaximumX: 90
     smoothFrames: 2
     IsAiming: 0
-  m_UseHeadBob: 1
+  m_UseHeadBob: 0
   _headBob:
     HorizontalBobRange: 0.05
     VerticalBobRange: 0.05
@@ -4388,7 +4413,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 311
+    m_Bits: 33555255
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0

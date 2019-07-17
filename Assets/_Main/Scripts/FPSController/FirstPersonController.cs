@@ -245,9 +245,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void UpdateParent()
         {
             RaycastHit hitInfo;
-            if (Physics.SphereCast(transform.position, (_characterController.radius + .3f) / 2, Vector3.down, out hitInfo, _characterController.height/2f, LayerMask.GetMask("MoveableObject")))
+            if (Physics.SphereCast(transform.position, (_characterController.radius + .3f) / 2, Vector3.down, out hitInfo, _characterController.height/2f, LayerMask.GetMask("MoveablePlane")))
             {
-                transform.parent = hitInfo.transform.parent;
+                transform.parent = hitInfo.transform;
             }
             else
             {
@@ -490,6 +490,17 @@ namespace UnityStandardAssets.Characters.FirstPerson
             _mouseLook.LookRotation (transform, _camera.transform);
         }
 
+        private void OnTriggerEnter(Collider collider)
+        {
+            if(collider.tag == "Moveable")
+            {
+                MoveableObject launchCheck = collider.transform.GetComponentInParent<MoveableObject>();
+                if(launchCheck)
+                {
+                    launchCheck.LaunchPlayer();
+                }
+            }
+        }
 
         private void OnControllerColliderHit(ControllerColliderHit hit)
         {

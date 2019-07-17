@@ -31,10 +31,13 @@ public class MoveableObject : MonoBehaviour
     private float _moveDistance;
     private Vector3Int _numOfMoves;
     private Vector3Int _currentRelativeLocation; //Our current location, relative to the positions and moves we have set
-
+    private Vector3Int _currentNormalMovingVector;
     private Transform _boundingBox;
+    private List<MoveablePlane> _moveablePlanes;
 
-    private MoveablePlane[] _moveablePlanes;
+    public bool IsMoving { get { return _moving; } }
+    public float MoveTime { get { return _moveTime; } }
+    public Vector3Int CurrentRelativeLocation { get { return _currentRelativeLocation; } }
 
     private void Awake()
     {
@@ -43,40 +46,55 @@ public class MoveableObject : MonoBehaviour
         _moving = false;
         _numOfMoves = new Vector3Int(XMoves, YMoves, ZMoves);
         _currentRelativeLocation = new Vector3Int(XPos, YPos, ZPos);
+        _currentNormalMovingVector = Vector3Int.zero;
 
         _boundingBox = GetComponentInChildren<BoundingBox>().transform;
         if(_boundingBox == null) Debug.LogError("No bounding box as child to movable object!");
 
-        _moveablePlanes = GetComponentsInChildren<MoveablePlane>();
+        _moveablePlanes = new List<MoveablePlane>();
     }
 
-    private void HandleMove(Vector3 movingVector)
+    public void HandleMove(Vector3Int movingVector, WeaponFiredEventArgs.FireType fireType)
     {
-        Vector3Int setMovingVector = Vector3Int.RoundToInt(movingVector);
-        Vector3Int tempLocation = _currentRelativeLocation + setMovingVector; //Where we are trying to move
+        Vector3Int tempLocation = _currentRelativeLocation + movingVector; //Where we are trying to move
         Vector3Int movingVectorAdjustment = Vector3Int.zero; //The adjustment we will move to, determined by where we actually can move
 
         bool movePiece = false;
-        if(Mathf.Abs(setMovingVector.x) > 0 && tempLocation.x >= 0 && tempLocation.x <= _numOfMoves.x)
+        if(Mathf.Abs(movingVector.x) > 0 && tempLocation.x >= 0 && tempLocation.x <= _numOfMoves.x)
         {
             movePiece = true;
-            movingVectorAdjustment.x += setMovingVector.x;
+            movingVectorAdjustment.x += movingVector.x;
         }
-        if(Mathf.Abs(setMovingVector.y) > 0 && tempLocation.y >= 0 && tempLocation.y <= _numOfMoves.y)
+        if(Mathf.Abs(movingVector.y) > 0 && tempLocation.y >= 0 && tempLocation.y <= _numOfMoves.y)
         {
             movePiece = true;
-            movingVectorAdjustment.y += setMovingVector.y;
+            movingVectorAdjustment.y += movingVector.y;
         }
-        if(Mathf.Abs(setMovingVector.z) > 0 && tempLocation.z >= 0 && tempLocation.z <= _numOfMoves.z)
+        if(Mathf.Abs(movingVector.z) > 0 && tempLocation.z >= 0 && tempLocation.z <= _numOfMoves.z)
         {
             movePiece = true;
-            movingVectorAdjustment.z += setMovingVector.z;
+            movingVectorAdjustment.z += movingVector.z;
         }
 
-        if(CheckMovePathClear(movingVectorAdjustment))
+        if(CheckMovePathClear(movingVectorAdjustment) && movePiece)
         {
+            _currentNormalMovingVector = movingVector;
             _currentRelativeLocation += movingVectorAdjustment;
-            if(movePiece) StartCoroutine(MoveObject());
+            StartCoroutine(Move());
+            foreach(MoveablePlane plane in _moveablePlanes) plane.UpdateColor();
+
+            if(fireType == WeaponFiredEventArgs.FireType.Pull)
+            {
+                AudioManager.Instance.PlayPullSound();
+            }
+            else
+            {
+                AudioManager.Instance.PlayPushSound();
+            }
+        }
+        else
+        {
+            AudioManager.Instance.PlayDudSound();
         }
     }
 
@@ -93,13 +111,13 @@ public class MoveableObject : MonoBehaviour
         if(axisList.Count > 0) adjustmentFloat = GetSmallest(axisList);
         else return false;
 
-        Debug.DrawRay(transform.position + new Vector3(movingVector.x * adjustmentFloat - Mathf.Sign(movingVector.x) * .02f, movingVector.y * adjustmentFloat - Mathf.Sign(movingVector.y) * .02f, movingVector.z * adjustmentFloat - Mathf.Sign(movingVector.z) * .02f), movingVector * _moveDistance , Color.magenta, 1);
+        //Debug.DrawRay(transform.position + new Vector3(movingVector.x * adjustmentFloat - Mathf.Sign(movingVector.x) * .02f, movingVector.y * adjustmentFloat - Mathf.Sign(movingVector.y) * .02f, movingVector.z * adjustmentFloat - Mathf.Sign(movingVector.z) * .02f), movingVector * _moveDistance , Color.magenta, 1);
         if(Physics.Raycast(transform.position + new Vector3(movingVector.x * adjustmentFloat - Mathf.Sign(movingVector.x) * .02f, movingVector.y * adjustmentFloat - Mathf.Sign(movingVector.y) * .02f, movingVector.z * adjustmentFloat - Mathf.Sign(movingVector.z) * .02f), movingVector, out RaycastHit hit, _moveDistance * movingVector.magnitude)) return false;
 
         return true;
     }
 
-    private IEnumerator MoveObject() //Controls piece movement and smooth color changes
+    private IEnumerator Move() //Controls piece movement and smooth color changes
     {
         float timer = 0f;
         _moving = true;
@@ -109,13 +127,32 @@ public class MoveableObject : MonoBehaviour
 
         while(timer < _moveTime)
         {
+            if(_currentNormalMovingVector.y > 0)//TEMPORARY UNIL I FIND A BETTER SOLUTION, I HATE THIS
+            {
+                UnityStandardAssets.Characters.FirstPerson.FirstPersonController player = GetComponentInChildren<UnityStandardAssets.Characters.FirstPerson.FirstPersonController>();
+                if(player)
+                {
+                    player.transform.parent = null;
+                }
+            }
+
             transform.localPosition = Vector3.Lerp(startingLocation, endingLocation, timer / _moveTime);
             timer += Time.deltaTime;
             yield return null;
         }
 
         transform.localPosition = endingLocation;
+        _currentNormalMovingVector = Vector3Int.zero;
         _moving = false;
+    }
+
+    public void LaunchPlayer()
+    {
+        if(_moving)
+        {
+            _moving = false;
+            EventManager.TriggerEvent(new PlayerLaunchEvent(_currentNormalMovingVector * -1, _verticalLaunchSpeed, _horizontalLaunchSpeed));
+        }
     }
 
     //Helpers
@@ -140,9 +177,8 @@ public class MoveableObject : MonoBehaviour
         return smallest;
     }
 
-    [ContextMenu("dwadwad")]
-    private void asdjadwa()
+    public void AddPlaneToList(MoveablePlane plane)
     {
-        HandleMove(new Vector3(1, 1, 0));
+        _moveablePlanes.Add(plane);
     }
 }

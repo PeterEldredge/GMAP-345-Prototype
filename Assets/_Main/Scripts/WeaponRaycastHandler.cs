@@ -54,15 +54,16 @@ public class WeaponRaycastHandler : GameEventUserObject
         float waitTime = _fireRateCurve.Evaluate(increment);
         float timer = 0f;
 
-        RaycastHit hit;
-
-        while(Input.GetMouseButton(mouseButton) && CheckRaycastForMatch(hitTransform, out hit))
+        while(Input.GetMouseButton(mouseButton))
         {
             timer += Time.deltaTime;
 
             if(timer > waitTime)
             {
-                hitTransform.GetComponentInParent<MoveableBlock>().HandleHit(new HitData(eventArgs.FireTypeArg, hit));
+                RaycastHit hit;
+                if(!CheckRaycastForMatch(hitTransform, out hit)) break;
+
+                hitTransform.GetComponentInParent<MoveablePlane>().HandleHit(new HitData(eventArgs.FireTypeArg, hit));
 
                 currentStep = (currentStep + increment) > _lastKeyPosition ? _lastKeyPosition : (currentStep + increment);
                 waitTime = _fireRateCurve.Evaluate(currentStep);
@@ -77,7 +78,7 @@ public class WeaponRaycastHandler : GameEventUserObject
 
     private bool CheckRaycastForMatch(Transform checkTransform, out RaycastHit hit)
     {
-        if(Physics.Raycast(_camera.transform.position, _camera.transform.forward, out hit, _range))
+        if(Physics.Raycast(_camera.transform.position, _camera.transform.forward, out hit, _range, LayerMask.GetMask("MoveablePlane")))
         {
             return hit.transform == checkTransform;
         }
@@ -90,9 +91,9 @@ public class WeaponRaycastHandler : GameEventUserObject
         RaycastHit hit;
         if(Physics.Raycast(_camera.transform.position, _camera.transform.forward, out hit, _range))
         {
-            if(hit.transform.gameObject.layer == LayerMask.NameToLayer("MoveableObject") && _canFire)
+            if(hit.transform.gameObject.layer == LayerMask.NameToLayer("MoveablePlane") && _canFire)
             {
-                MoveableBlock block = hit.transform.GetComponentInParent<MoveableBlock>();
+                MoveablePlane block = hit.transform.GetComponentInParent<MoveablePlane>();
                 if(block) 
                 {
                     block.HandleHit(new HitData(eventArgs.FireTypeArg, hit));
