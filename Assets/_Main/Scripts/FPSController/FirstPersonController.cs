@@ -244,7 +244,15 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void UpdateParent()
         {
-            
+            RaycastHit hitInfo;
+            if (Physics.SphereCast(transform.position, (_characterController.radius + .3f) / 2, Vector3.down, out hitInfo, _characterController.height/2f, LayerMask.GetMask("MoveableObject")))
+            {
+                transform.parent = hitInfo.transform.parent;
+            }
+            else
+            {
+                transform.parent = null;
+            }
         }
 
         private void PlayLandingSound()

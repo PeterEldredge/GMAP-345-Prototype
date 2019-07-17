@@ -14,21 +14,6 @@ public struct HitData
     }
 }
 
-public struct PlayerLaunchEvent : IGameEvent
-{
-    public Vector3 LaunchVector { get; private set; }
-    public float VerticalLaunchSpeed { get; private set; }
-    public float HorizontalLaunchSpeed { get; private set; }
-
-
-    public PlayerLaunchEvent(Vector3 launchVector, float verticalLaunchSpeed, float horizontalLaunchSpeed)
-    {
-        LaunchVector = launchVector;
-        VerticalLaunchSpeed = verticalLaunchSpeed;
-        HorizontalLaunchSpeed = horizontalLaunchSpeed;
-    }
-}
-
 public class MoveableBlock : MonoBehaviour
 {
     private enum Axis
@@ -143,12 +128,12 @@ public class MoveableBlock : MonoBehaviour
         neg.material.color = new Color32(255, negColor, negColor, 255);
     }
 
-    private byte RoundByteColors(byte b)
-    {
-        if(b > 230) return 255;
-        else if (b < 35) return 0;
-        else return b;
-    }
+        private byte RoundByteColors(byte b)
+        {
+            if(b > 230) return 255;
+            else if (b < 35) return 0;
+            else return b;
+        }
 
     public void HandleHit(HitData hitArgs)
     {
