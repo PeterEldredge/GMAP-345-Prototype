@@ -104,11 +104,17 @@ public class MoveableObject : MonoBehaviour
     private bool CheckMovePathClear(Vector3 movingVector) //Makes sure the path the cube is going to travel is clear, could use improvement but good enough for now
     {
         Vector3 adjustmentVector = new Vector3(movingVector.x * _boundingBox.transform.localScale.x / 2, movingVector.y * _boundingBox.transform.localScale.y / 2, movingVector.z * _boundingBox.transform.localScale.z / 2);
+        float adjustmentVectorMagnitude = adjustmentVector.magnitude; 
+        
+        if(Mathf.Abs(movingVector.x) + Mathf.Abs(movingVector.y) + Mathf.Abs(movingVector.z) > 1) // Multiplier for diagonal movement, maybe just do 2 raycasts instead??
+        {
+            adjustmentVectorMagnitude *= .8f;
+        }
 
         _moveableStructure.HideChildrenFromRaycast();
 
         Debug.DrawRay(_boundingBox.transform.position, movingVector * _moveDistance + adjustmentVector, Color.magenta, 1);
-        if(Physics.SphereCast(_boundingBox.transform.position, _boundingBox.SpherecastRadius, movingVector, out RaycastHit hit, _moveDistance * movingVector.magnitude + adjustmentVector.magnitude - _boundingBox.SpherecastRadius)) return false;
+        if(Physics.SphereCast(_boundingBox.transform.position, _boundingBox.SpherecastRadius, movingVector, out RaycastHit hit, _moveDistance * movingVector.magnitude + adjustmentVectorMagnitude - _boundingBox.SpherecastRadius)) return false;
         return true;
     }
 
