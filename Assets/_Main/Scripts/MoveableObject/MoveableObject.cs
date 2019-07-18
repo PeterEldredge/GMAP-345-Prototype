@@ -32,8 +32,8 @@ public class MoveableObject : MonoBehaviour
     private Vector3Int _numOfMoves;
     private Vector3Int _currentRelativeLocation; //Our current location, relative to the positions and moves we have set
     private Vector3Int _currentNormalMovingVector;
-    private Transform _boundingBox;
-    private List<MoveablePlane> _moveablePlanes;
+    private BoundingBox _boundingBox;
+    private MoveableStructure _moveableStructure;
 
     public bool IsMoving { get { return _moving; } }
     public float MoveTime { get { return _moveTime; } }
@@ -48,10 +48,11 @@ public class MoveableObject : MonoBehaviour
         _currentRelativeLocation = new Vector3Int(XPos, YPos, ZPos);
         _currentNormalMovingVector = Vector3Int.zero;
 
-        _boundingBox = GetComponentInChildren<BoundingBox>().transform;
+        _boundingBox = GetComponentInChildren<BoundingBox>();
         if(_boundingBox == null) Debug.LogError("No bounding box as child to movable object!");
-
-        _moveablePlanes = new List<MoveablePlane>();
+        
+        _moveableStructure = GetComponentInChildren<MoveableStructure>();
+        if(_moveableStructure == null) Debug.LogError("No moveable structure as child to movable object!");
     }
 
     public void HandleMove(Vector3Int movingVector, WeaponFiredEventArgs.FireType fireType)
@@ -81,7 +82,7 @@ public class MoveableObject : MonoBehaviour
             _currentNormalMovingVector = movingVector;
             _currentRelativeLocation += movingVectorAdjustment;
             StartCoroutine(Move());
-            foreach(MoveablePlane plane in _moveablePlanes) plane.UpdateColor();
+            _moveableStructure.UpdatePlaneColors();
 
             if(fireType == WeaponFiredEventArgs.FireType.Pull)
             {
@@ -96,24 +97,18 @@ public class MoveableObject : MonoBehaviour
         {
             AudioManager.Instance.PlayDudSound();
         }
+
+        _moveableStructure.ReturnLayer();
     }
 
     private bool CheckMovePathClear(Vector3 movingVector) //Makes sure the path the cube is going to travel is clear, could use improvement but good enough for now
     {
-        List<float> axisList = new List<float>();
+        Vector3 adjustmentVector = new Vector3(movingVector.x * _boundingBox.transform.localScale.x / 2, movingVector.y * _boundingBox.transform.localScale.y / 2, movingVector.z * _boundingBox.transform.localScale.z / 2);
 
-        if(GreaterMagnitudeThanFloat(movingVector.x, 0)) axisList.Add(_boundingBox.localScale.x / 2);
-        if(GreaterMagnitudeThanFloat(movingVector.y, 0)) axisList.Add(_boundingBox.localScale.y / 2);
-        if(GreaterMagnitudeThanFloat(movingVector.z, 0)) axisList.Add(_boundingBox.localScale.z / 2);
+        _moveableStructure.HideChildrenFromRaycast();
 
-        float adjustmentFloat = 0f;
-
-        if(axisList.Count > 0) adjustmentFloat = GetSmallest(axisList);
-        else return false;
-
-        //Debug.DrawRay(transform.position + new Vector3(movingVector.x * adjustmentFloat - Mathf.Sign(movingVector.x) * .02f, movingVector.y * adjustmentFloat - Mathf.Sign(movingVector.y) * .02f, movingVector.z * adjustmentFloat - Mathf.Sign(movingVector.z) * .02f), movingVector * _moveDistance , Color.magenta, 1);
-        if(Physics.Raycast(transform.position + new Vector3(movingVector.x * adjustmentFloat - Mathf.Sign(movingVector.x) * .02f, movingVector.y * adjustmentFloat - Mathf.Sign(movingVector.y) * .02f, movingVector.z * adjustmentFloat - Mathf.Sign(movingVector.z) * .02f), movingVector, out RaycastHit hit, _moveDistance * movingVector.magnitude)) return false;
-
+        Debug.DrawRay(_boundingBox.transform.position, movingVector * _moveDistance + adjustmentVector, Color.magenta, 1);
+        if(Physics.SphereCast(_boundingBox.transform.position, _boundingBox.SpherecastRadius, movingVector, out RaycastHit hit, _moveDistance * movingVector.magnitude + adjustmentVector.magnitude - _boundingBox.SpherecastRadius)) return false;
         return true;
     }
 
@@ -175,10 +170,5 @@ public class MoveableObject : MonoBehaviour
         }
 
         return smallest;
-    }
-
-    public void AddPlaneToList(MoveablePlane plane)
-    {
-        _moveablePlanes.Add(plane);
     }
 }

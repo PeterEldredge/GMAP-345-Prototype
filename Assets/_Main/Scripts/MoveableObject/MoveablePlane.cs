@@ -33,7 +33,6 @@ public class MoveablePlane : MonoBehaviour
     private void Start()
     {
         InitializeColor();
-        _parentMoveable.AddPlaneToList(this);
     }
 
     private void InitializeColor()
