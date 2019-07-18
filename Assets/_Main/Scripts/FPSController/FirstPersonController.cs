@@ -511,6 +511,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 return;
             }
 
+            if(_collisionFlags == CollisionFlags.Above)
+            {
+                _moveVector.y = 0;
+                return;
+            }
+
             if (body == null || body.isKinematic)
             {
                 return;
