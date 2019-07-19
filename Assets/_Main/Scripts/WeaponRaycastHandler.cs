@@ -39,7 +39,7 @@ public class WeaponRaycastHandler : GameEventUserObject
 
         switch(eventArgs.FireTypeArg)
         {
-            case WeaponFiredEventArgs.FireType.Push:
+            case FireType.Push:
                 mouseButton = 0;
                 break;
             default:
@@ -63,7 +63,10 @@ public class WeaponRaycastHandler : GameEventUserObject
                 RaycastHit hit;
                 if(!CheckRaycastForMatch(hitTransform, out hit)) break;
 
-                hitTransform.GetComponentInParent<MoveablePlane>().HandleHit(new HitData(eventArgs.FireTypeArg, hit));
+                HitResult hitResult = hitTransform.GetComponentInParent<MoveablePlane>().HandleHit(new HitData(eventArgs.FireTypeArg, hit));
+                HandleHitSound(hitResult, eventArgs.FireTypeArg);
+
+                if(hitResult == HitResult.EndOfPath) break;
 
                 currentStep = (currentStep + increment) > _lastKeyPosition ? _lastKeyPosition : (currentStep + increment);
                 waitTime = _fireRateCurve.Evaluate(currentStep);
@@ -78,9 +81,12 @@ public class WeaponRaycastHandler : GameEventUserObject
 
     private bool CheckRaycastForMatch(Transform checkTransform, out RaycastHit hit)
     {
-        if(Physics.Raycast(_camera.transform.position, _camera.transform.forward, out hit, _range, LayerMask.GetMask("MoveablePlane")))
+        if(Physics.Raycast(_camera.transform.position, _camera.transform.forward, out hit))
         {
-            return hit.transform == checkTransform;
+            if(hit.transform.gameObject.layer == LayerMask.NameToLayer("MoveablePlane"))
+            {
+                return hit.transform == checkTransform;
+            }
         }
 
         return false;
@@ -91,20 +97,43 @@ public class WeaponRaycastHandler : GameEventUserObject
         RaycastHit hit;
         if(Physics.Raycast(_camera.transform.position, _camera.transform.forward, out hit, _range))
         {
-            if(hit.transform.gameObject.layer == LayerMask.NameToLayer("MoveablePlane") && _canFire)
+            if(hit.transform.gameObject.layer == LayerMask.NameToLayer("MoveablePlane"))
             {
-                MoveablePlane block = hit.transform.GetComponentInParent<MoveablePlane>();
-                if(block) 
+                if(_canFire)
                 {
-                    block.HandleHit(new HitData(eventArgs.FireTypeArg, hit));
-                    StartCoroutine(UpdateFireRate(eventArgs, hit.transform));
+                    MoveablePlane block = hit.transform.GetComponentInParent<MoveablePlane>();
+                    if(block) 
+                    {
+                        HandleHitSound(block.HandleHit(new HitData(eventArgs.FireTypeArg, hit)), eventArgs.FireTypeArg);
+                        StartCoroutine(UpdateFireRate(eventArgs, hit.transform));
+                    }
+                    else Debug.LogError("No MoveableBlock component found!");
                 }
-                else Debug.LogError("No MoveableBlock component found!");
             }
-            else
-            {
-                AudioManager.Instance.PlayDudSound();
-            } 
         } 
+    }
+
+    private void HandleHitSound(HitResult hitResult, FireType fireType) //IK this is bad, but it may be good enough
+    {
+        switch(hitResult)
+        {
+            case HitResult.EndOfPath:
+                AudioManager.Instance.PlayEndOfPathSound();
+                break;
+            case HitResult.Success:
+                switch(fireType)
+                {
+                    case FireType.Pull:
+                        AudioManager.Instance.PlayPullSound();
+                        break;
+                    case FireType.Push:
+                        AudioManager.Instance.PlayPushSound();
+                        break;
+                }
+                break;
+            case HitResult.Failure:
+                AudioManager.Instance.PlayDudSound();
+                break;
+        }
     }
 }

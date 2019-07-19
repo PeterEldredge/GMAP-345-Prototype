@@ -2,6 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum HitResult
+{
+    Success,
+    Failure,
+    EndOfPath
+}
+
 public struct PlayerLaunchEvent : IGameEvent
 {
     public Vector3 LaunchVector { get; private set; }
@@ -32,6 +39,7 @@ public class MoveableObject : MonoBehaviour
     private Vector3Int _numOfMoves;
     private Vector3Int _currentRelativeLocation; //Our current location, relative to the positions and moves we have set
     private Vector3Int _currentNormalMovingVector;
+    private Vector3Int _endOfPath;
     private BoundingBox _boundingBox;
     private MoveableStructure _moveableStructure;
 
@@ -47,6 +55,11 @@ public class MoveableObject : MonoBehaviour
         _numOfMoves = new Vector3Int(XMoves, YMoves, ZMoves);
         _currentRelativeLocation = new Vector3Int(XPos, YPos, ZPos);
         _currentNormalMovingVector = Vector3Int.zero;
+        _endOfPath = Vector3Int.zero;
+
+        if(XPos == XMoves || XPos == 0) _endOfPath.x = 1;
+        if(YPos == YMoves || YPos == 0) _endOfPath.y = 1;
+        if(ZPos == ZMoves || ZPos == 0) _endOfPath.z = 1;
 
         _boundingBox = GetComponentInChildren<BoundingBox>();
         if(_boundingBox == null) Debug.LogError("No bounding box as child to movable object!");
@@ -55,7 +68,7 @@ public class MoveableObject : MonoBehaviour
         if(_moveableStructure == null) Debug.LogError("No moveable structure as child to movable object!");
     }
 
-    public void HandleMove(Vector3Int movingVector, WeaponFiredEventArgs.FireType fireType)
+    public HitResult HandleMove(Vector3Int movingVector, FireType fireType)
     {
         Vector3Int tempLocation = _currentRelativeLocation + movingVector; //Where we are trying to move
         Vector3Int movingVectorAdjustment = Vector3Int.zero; //The adjustment we will move to, determined by where we actually can move
@@ -63,42 +76,54 @@ public class MoveableObject : MonoBehaviour
         bool movePiece = false;
         if(Mathf.Abs(movingVector.x) > 0 && tempLocation.x >= 0 && tempLocation.x <= _numOfMoves.x)
         {
+            if(tempLocation.x == _numOfMoves.x || tempLocation.x == 0) _endOfPath.x = 1;
+            else _endOfPath.x = 0;
+
             movePiece = true;
             movingVectorAdjustment.x += movingVector.x;
         }
         if(Mathf.Abs(movingVector.y) > 0 && tempLocation.y >= 0 && tempLocation.y <= _numOfMoves.y)
         {
+            if(tempLocation.y == _numOfMoves.y || tempLocation.y == 0) _endOfPath.y = 1;
+            else _endOfPath.y = 0;
+
             movePiece = true;
             movingVectorAdjustment.y += movingVector.y;
         }
         if(Mathf.Abs(movingVector.z) > 0 && tempLocation.z >= 0 && tempLocation.z <= _numOfMoves.z)
         {
+            if(tempLocation.z == _numOfMoves.z || tempLocation.z == 0) _endOfPath.z = 1;
+            else _endOfPath.z = 0;
+
             movePiece = true;
             movingVectorAdjustment.z += movingVector.z;
         }
 
-        if(CheckMovePathClear(movingVectorAdjustment) && movePiece)
+        bool pathClear = CheckMovePathClear(movingVectorAdjustment);
+
+        _moveableStructure.ReturnLayer();
+
+        if(pathClear && movePiece)
         {
             _currentNormalMovingVector = movingVector;
             _currentRelativeLocation += movingVectorAdjustment;
             StartCoroutine(Move());
             _moveableStructure.UpdatePlaneColors();
 
-            if(fireType == WeaponFiredEventArgs.FireType.Pull)
+            if((_endOfPath * movingVectorAdjustment).magnitude > 0) //If endofpath and movingvectoradjustment both have 1's (true)
             {
-                AudioManager.Instance.PlayPullSound();
+                return HitResult.EndOfPath;
             }
             else
             {
-                AudioManager.Instance.PlayPushSound();
+                return HitResult.Success;
             }
         }
         else
         {
-            AudioManager.Instance.PlayDudSound();
+            return HitResult.Failure;
         }
 
-        _moveableStructure.ReturnLayer();
     }
 
     private bool CheckMovePathClear(Vector3 movingVector) //Makes sure the path the cube is going to travel is clear, could use improvement but good enough for now
@@ -111,7 +136,7 @@ public class MoveableObject : MonoBehaviour
             adjustmentVectorMagnitude *= .8f;
         }
 
-        _moveableStructure.HideChildrenFromRaycast();
+        _moveableStructure.HideChildrenFromRaycast(); //I have no idea if changing the layer of a bunch of objects for a single raycast is terrible or not
 
         Debug.DrawRay(_boundingBox.transform.position, movingVector * _moveDistance + adjustmentVector, Color.magenta, 1);
         if(Physics.SphereCast(_boundingBox.transform.position, _boundingBox.SpherecastRadius, movingVector, out RaycastHit hit, _moveDistance * movingVector.magnitude + adjustmentVectorMagnitude - _boundingBox.SpherecastRadius)) return false;

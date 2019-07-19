@@ -4,14 +4,14 @@ using UnityEngine;
 using UnityStandardAssets.Utility;
 using Random = UnityEngine.Random;
 
+public enum FireType
+{
+    Push,
+    Pull
+}
+
 public struct WeaponFiredEventArgs : IGameEvent
 {
-    public enum FireType
-    {
-        Push,
-        Pull
-    }
-
     public FireType FireTypeArg { get; private set; }
 
     public WeaponFiredEventArgs(FireType fireType)
@@ -63,11 +63,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private MouseLook _mouseLook;
         private Vector2 _input;
 
-        //Headbob
-        [SerializeField] private bool m_UseHeadBob = true;
-        [SerializeField] private CurveControlledBob _headBob = new CurveControlledBob();
-        [SerializeField] private LerpControlledBob _jumpBob = new LerpControlledBob();
-
         //Steps
         [SerializeField] private float _stepInterval = 5;
         private float _stepCycle;
@@ -104,8 +99,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             _characterController = GetComponent<CharacterController>();
             _audioSource = GetComponent<AudioSource>();
-
-            _headBob.Setup(_camera, _stepInterval);
 
             _speed = 0f;
             _stepCycle = 0f;
@@ -180,7 +173,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             if (!_previouslyGrounded && _characterController.isGrounded && !_launch)
             {
-                StartCoroutine(_jumpBob.DoBobCycle());
                 PlayLandingSound();
                 _moveVector.y = 0f;
                 _jumping = false;
@@ -229,7 +221,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
             Fire(Input.GetMouseButtonDown(0), Input.GetMouseButtonDown(1));
             ProgressStepCycle();
-            UpdateCameraPosition();
             UpdateAnimations();
         }
 
@@ -302,30 +293,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             // move picked sound to index 0 so it's not picked next time
             _footstepSounds[n] = _footstepSounds[0];
             _footstepSounds[0] = _audioSource.clip;
-        }
-
-
-        private void UpdateCameraPosition()
-        {
-            Vector3 newCameraPosition;
-            if (!m_UseHeadBob)
-            {
-                return;
-            }
-            if (_characterController.velocity.magnitude > 0 && _characterController.isGrounded && !_isLaunchingHorrizontally)
-            {
-                _camera.transform.localPosition =
-                    _headBob.DoHeadBob(_characterController.velocity.magnitude +
-                                      (_speed*(_isWalking ? 1f : _runstepLenghten)));
-                newCameraPosition = _camera.transform.localPosition;
-                newCameraPosition.y = _camera.transform.localPosition.y - _jumpBob.Offset();
-            }
-            else
-            {
-                newCameraPosition = _camera.transform.localPosition;
-                newCameraPosition.y = _originalCameraPosition.y - _jumpBob.Offset();
-            }
-            _camera.transform.localPosition = newCameraPosition;
         }
 
         private void UpdateAnimations()
@@ -436,8 +403,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void Fire(bool push, bool pull)
         {
-            if(push) EventManager.TriggerEvent(new WeaponFiredEventArgs(WeaponFiredEventArgs.FireType.Push));
-            if(pull) EventManager.TriggerEvent(new WeaponFiredEventArgs(WeaponFiredEventArgs.FireType.Pull));
+            if(push) EventManager.TriggerEvent(new WeaponFiredEventArgs(FireType.Push));
+            if(pull) EventManager.TriggerEvent(new WeaponFiredEventArgs(FireType.Pull));
         }
 
         private IEnumerator SetFOV()

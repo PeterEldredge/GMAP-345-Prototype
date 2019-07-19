@@ -4,9 +4,9 @@ using UnityEngine;
 
 public struct HitData
 {
-    public WeaponFiredEventArgs.FireType FireTypeArg { get; private set; }
+    public FireType FireTypeArg { get; private set; }
 
-    public HitData(WeaponFiredEventArgs.FireType fireType, RaycastHit hit)
+    public HitData(FireType fireType, RaycastHit hit)
     {
         FireTypeArg = fireType;
     }
@@ -88,12 +88,12 @@ public class MoveablePlane : MonoBehaviour
         _renderer.material.color = new Color32(255, color, color, 255);
     }
 
-    public void HandleHit(HitData hitArgs)
+    public HitResult HandleHit(HitData hitArgs)
     {
         int fireTypeMultiplier = 1;
-        if(hitArgs.FireTypeArg == WeaponFiredEventArgs.FireType.Pull) fireTypeMultiplier = -1;
+        if(hitArgs.FireTypeArg == FireType.Pull) fireTypeMultiplier = -1;
 
-        _parentMoveable.HandleMove(_axes * fireTypeMultiplier, hitArgs.FireTypeArg);
+        return _parentMoveable.HandleMove(_axes * fireTypeMultiplier, hitArgs.FireTypeArg);
     }
 
     //Helpers
