@@ -14,6 +14,6 @@ public abstract class GameEventUserObject : MonoBehaviour, IUseGameEvents
         Unsubscribe();
     }
 
-    public virtual void Subscribe() {}
-    public virtual void Unsubscribe() {}
+    public abstract void Subscribe();
+    public abstract void Unsubscribe();
 }

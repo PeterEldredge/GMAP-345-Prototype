@@ -5,10 +5,12 @@ using UnityEngine;
 public struct HitData
 {
     public FireType FireTypeArg { get; private set; }
+    public bool ValidTargetArg { get; private set; }
 
-    public HitData(FireType fireType, RaycastHit hit)
+    public HitData(FireType fireType, bool validTarget)
     {
         FireTypeArg = fireType;
+        ValidTargetArg = validTarget;
     }
 }
 
@@ -88,12 +90,21 @@ public class MoveablePlane : MonoBehaviour
         _renderer.material.color = new Color32(255, color, color, 255);
     }
 
-    public HitResult HandleHit(HitData hitArgs)
+    public bool CanMove(FireType fireType)
+    {
+        int fireTypeMultiplier = 1;
+        if(fireType == FireType.Pull) fireTypeMultiplier = -1;
+
+        return _parentMoveable.CheckCanMove(_axes * fireTypeMultiplier, out Vector3Int v);
+    }
+
+    public HitResult HandleHit(HitData hitArgs) //This got messy, will need to clean up this process later
     {
         int fireTypeMultiplier = 1;
         if(hitArgs.FireTypeArg == FireType.Pull) fireTypeMultiplier = -1;
 
-        return _parentMoveable.HandleMove(_axes * fireTypeMultiplier, hitArgs.FireTypeArg);
+        if(hitArgs.ValidTargetArg) return _parentMoveable.HandleMove(_axes * fireTypeMultiplier, hitArgs.FireTypeArg, true);
+        else return HitResult.Failure;
     }
 
     //Helpers

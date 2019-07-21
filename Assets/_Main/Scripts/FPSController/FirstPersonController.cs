@@ -27,13 +27,14 @@ namespace UnityStandardAssets.Characters.FirstPerson
     public class FirstPersonController : GameEventUserObject
     {
         //Movement
-        [SerializeField] private float _stickToGroundForce = 10f;
+        [SerializeField] private float _stickToSlopeForce = 10f;
         [SerializeField] private float _aimMoveSpeed = 3f;  
         [SerializeField] private float _walkSpeed = 7f;
         [SerializeField] private float _runAnimationSpeed = 10f;
         //[SerializeField] private float _runSpeed = 10f;
         [SerializeField] [Range(0f, 1f)] private float _runstepLenghten = .7f;
-        private bool _isWalking = false;
+        private bool _isWalking;
+        private float _stickToGroundForce;
         private float _moveAngle; //The angle which the player is moving
         private float _facingAngle; //The angle which the player is facing
         private float _speed; //Current Movement Speed
@@ -52,6 +53,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private float _launchControl = 5f;
         [SerializeField] private float _verticalLaunchGravityMultiplier = 1.5f;
         [SerializeField] private float _horrizontalLaunchGravityMultiplier = 1f;
+        [SerializeField] private float _diagonalLaunchGravityMultiplier = 2f;
         [SerializeField] private float _gravityMultiplier = 2f;
         private bool _launch;
         private bool _isLaunchingVertiaclly;
@@ -96,6 +98,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             _camera = Camera.main;
             _originalCameraPosition = _camera.transform.localPosition;
+
+            _isWalking = false;
+            _stickToGroundForce = 1f;
 
             _characterController = GetComponent<CharacterController>();
             _audioSource = GetComponent<AudioSource>();
@@ -194,10 +199,18 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 _isLaunchingVertiaclly = !CompareToZero(_launchVector.y);
                 _isLaunchingHorrizontally = !CompareToZero(_launchVector.x) || !CompareToZero(_launchVector.z);
 
-                if(_isLaunchingVertiaclly) _currentGravityMultiplier = _verticalLaunchGravityMultiplier;
-                if(_isLaunchingHorrizontally) _currentGravityMultiplier = _horrizontalLaunchGravityMultiplier;
+                if(_isLaunchingVertiaclly && _isLaunchingHorrizontally)
+                {
+                    _currentGravityMultiplier = _diagonalLaunchGravityMultiplier;
+                }
+                else
+                {
+                    if(_isLaunchingVertiaclly) _currentGravityMultiplier = _verticalLaunchGravityMultiplier;
+                    else _currentGravityMultiplier = _horrizontalLaunchGravityMultiplier;
+                }
 
                 _moveVector = _launchVector;
+                _launchVector = Vector3.zero;
             }
             else if (_characterController.isGrounded)
             {
@@ -475,6 +488,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
             //dont move the rigidbody if the character is on top of it
             if (_collisionFlags == CollisionFlags.Below)
             {
+                if(hit.normal != Vector3.up) _stickToGroundForce = _stickToSlopeForce;
+                else _stickToGroundForce = 1f;
                 return;
             }
 

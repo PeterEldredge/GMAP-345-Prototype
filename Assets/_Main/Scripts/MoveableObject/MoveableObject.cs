@@ -28,6 +28,8 @@ public class MoveableObject : MonoBehaviour
     [SerializeField] private float _moveTime = .1f;
     [SerializeField] private float _verticalLaunchSpeed = 17f;
     [SerializeField] private float _horizontalLaunchSpeed = 25f;
+    [SerializeField] private float _diagonalVerticalLaunchSpeed = 12f;
+    [SerializeField] private float _diagonalHorizontalLaunchSpeed = 20f;
     [Range(1, 10)] public int MoveDistance = 2;
 
     [HideInInspector] public bool ShowPreview = true;  
@@ -68,10 +70,10 @@ public class MoveableObject : MonoBehaviour
         if(_moveableStructure == null) Debug.LogError("No moveable structure as child to movable object!");
     }
 
-    public HitResult HandleMove(Vector3Int movingVector, FireType fireType)
+    public bool CheckCanMove(Vector3Int movingVector, out Vector3Int movingVectorAdjustment, bool overrideCheck = false)
     {
         Vector3Int tempLocation = _currentRelativeLocation + movingVector; //Where we are trying to move
-        Vector3Int movingVectorAdjustment = Vector3Int.zero; //The adjustment we will move to, determined by where we actually can move
+        movingVectorAdjustment = Vector3Int.zero; //The adjustment we will move to, determined by where we actually can move
 
         bool movePiece = false;
         if(Mathf.Abs(movingVector.x) > 0 && tempLocation.x >= 0 && tempLocation.x <= _numOfMoves.x)
@@ -99,31 +101,9 @@ public class MoveableObject : MonoBehaviour
             movingVectorAdjustment.z += movingVector.z;
         }
 
-        bool pathClear = CheckMovePathClear(movingVectorAdjustment);
+        if(overrideCheck) return true;
 
-        _moveableStructure.ReturnLayer();
-
-        if(pathClear && movePiece)
-        {
-            _currentNormalMovingVector = movingVector;
-            _currentRelativeLocation += movingVectorAdjustment;
-            StartCoroutine(Move());
-            _moveableStructure.UpdatePlaneColors();
-
-            if((_endOfPath * movingVectorAdjustment).magnitude > 0) //If endofpath and movingvectoradjustment both have 1's (true)
-            {
-                return HitResult.EndOfPath;
-            }
-            else
-            {
-                return HitResult.Success;
-            }
-        }
-        else
-        {
-            return HitResult.Failure;
-        }
-
+        return CheckMovePathClear(movingVectorAdjustment) && movePiece;
     }
 
     private bool CheckMovePathClear(Vector3 movingVector) //Makes sure the path the cube is going to travel is clear, could use improvement but good enough for now
@@ -139,8 +119,41 @@ public class MoveableObject : MonoBehaviour
         _moveableStructure.HideChildrenFromRaycast(); //I have no idea if changing the layer of a bunch of objects for a single raycast is terrible or not
 
         Debug.DrawRay(_boundingBox.transform.position, movingVector * _moveDistance + adjustmentVector, Color.magenta, 1);
-        if(Physics.SphereCast(_boundingBox.transform.position, _boundingBox.SpherecastRadius, movingVector, out RaycastHit hit, _moveDistance * movingVector.magnitude + adjustmentVectorMagnitude - _boundingBox.SpherecastRadius)) return false;
+        if(Physics.SphereCast(_boundingBox.transform.position, _boundingBox.SpherecastRadius, movingVector, out RaycastHit hit, _moveDistance * movingVector.magnitude + adjustmentVectorMagnitude - _boundingBox.SpherecastRadius))
+        {
+            _moveableStructure.ReturnLayer();
+            return false;
+        }
+
+        _moveableStructure.ReturnLayer();
         return true;
+    }
+
+    public HitResult HandleMove(Vector3Int movingVector, FireType fireType, bool overrideCheck = false)
+    {
+        Vector3Int movingVectorAdjustment;
+        bool move = CheckCanMove(movingVector, out movingVectorAdjustment, overrideCheck);
+        
+        if(CheckCanMove(movingVector, out movingVectorAdjustment))
+        {
+            _currentNormalMovingVector = movingVector;
+            _currentRelativeLocation += movingVectorAdjustment;
+            StartCoroutine(Move());
+            _moveableStructure.UpdatePlaneColors();
+
+            if((_endOfPath * movingVectorAdjustment).magnitude >= movingVectorAdjustment.magnitude) //If endofpath and movingvectoradjustment both have 1's (true)
+            {
+                return HitResult.EndOfPath;
+            }
+            else
+            {
+                return HitResult.Success;
+            }
+        }
+        else
+        {
+            return HitResult.Failure;
+        }
     }
 
     private IEnumerator Move() //Controls piece movement and smooth color changes
@@ -177,7 +190,8 @@ public class MoveableObject : MonoBehaviour
         if(_moving)
         {
             _moving = false;
-            EventManager.TriggerEvent(new PlayerLaunchEvent(_currentNormalMovingVector * -1, _verticalLaunchSpeed, _horizontalLaunchSpeed));
+            if(_currentNormalMovingVector.magnitude <= 1) EventManager.TriggerEvent(new PlayerLaunchEvent(_currentNormalMovingVector * -1, _verticalLaunchSpeed, _horizontalLaunchSpeed));
+            else EventManager.TriggerEvent(new PlayerLaunchEvent(_currentNormalMovingVector * -1, _diagonalVerticalLaunchSpeed, _diagonalHorizontalLaunchSpeed));
         }
     }
 
