@@ -42,6 +42,7 @@ public class MoveableObject_Editor : Editor
     public void OnSceneGUI()
     {
         MoveableObject moveableObject = (MoveableObject)target;
+        
 
         if(moveableObject.ShowPreview && !Application.isPlaying)
         {

@@ -267,6 +267,7 @@ GameObject:
   - component: {fileID: 1812713160}
   - component: {fileID: 1812713162}
   - component: {fileID: 1812713161}
+  - component: {fileID: 5136803685480716807}
   m_Layer: 5
   m_Name: Reticle
   m_TagString: Untagged
@@ -330,6 +331,22 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
+--- !u!114 &5136803685480716807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1812713159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 88dbcf30c1726d74185061575eb84084, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _defaultReticle: {fileID: 21300000, guid: 0a129ae24db375544a7b3542f034cedd, type: 3}
+  _pushableReticle: {fileID: 21300000, guid: da5f2893f1016c944872702ef5286e11, type: 3}
+  _pullableReticle: {fileID: 21300000, guid: 216f959785151644baf9d32d6994a088, type: 3}
+  _bothableReticle: {fileID: 21300000, guid: 7659b6641c4025c479d1ddeaec4a57cc, type: 3}
 --- !u!1 &2066011195
 GameObject:
   m_ObjectHideFlags: 0
@@ -377,6 +394,7 @@ MonoBehaviour:
   _pullSound: {fileID: 8300000, guid: e8b11a310fbdcdb489948f379008d88e, type: 3}
   _pushSound: {fileID: 8300000, guid: e8b11a310fbdcdb489948f379008d88e, type: 3}
   _dudSound: {fileID: 8300000, guid: a4d49d5c13a0046458b3db208ee9aea7, type: 3}
+  _endOfPathSound: {fileID: 0}
 --- !u!82 &2066011197
 AudioSource:
   m_ObjectHideFlags: 0
@@ -4109,7 +4127,7 @@ CharacterController:
   serializedVersion: 2
   m_Height: 1.8
   m_Radius: 0.5
-  m_SlopeLimit: 45
+  m_SlopeLimit: 60
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0
@@ -4126,7 +4144,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05ec5cf00ca181d45a42ba1870e148c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _stickToGroundForce: 1
+  _stickToSlopeForce: 10
   _aimMoveSpeed: 3
   _walkSpeed: 7
   _runAnimationSpeed: 10
@@ -4137,6 +4155,7 @@ MonoBehaviour:
   _launchControl: 5
   _verticalLaunchGravityMultiplier: 2.5
   _horrizontalLaunchGravityMultiplier: 1
+  _diagonalLaunchGravityMultiplier: 2
   _gravityMultiplier: 2
   _mouseLook:
     XSensitivity: 1
@@ -4147,65 +4166,6 @@ MonoBehaviour:
     MaximumX: 90
     smoothFrames: 2
     IsAiming: 0
-  m_UseHeadBob: 0
-  _headBob:
-    HorizontalBobRange: 0.05
-    VerticalBobRange: 0.05
-    Bobcurve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.5
-        value: 0.5
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 1.5
-        value: -0.5
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 2
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    VerticalToHorizontalRatio: 1
-  _jumpBob:
-    BobDuration: 0.2
-    BobAmount: 0.1
   _stepInterval: 5
   _characterCamera: {fileID: 1033079787}
   _handAnimator: {fileID: 2925742375717162967}

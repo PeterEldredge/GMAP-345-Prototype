@@ -118,7 +118,7 @@ public class MoveableObject : MonoBehaviour
 
         _moveableStructure.HideChildrenFromRaycast(); //I have no idea if changing the layer of a bunch of objects for a single raycast is terrible or not
 
-        Debug.DrawRay(_boundingBox.transform.position, movingVector * _moveDistance + adjustmentVector, Color.magenta, 1);
+        //Debug.DrawRay(_boundingBox.transform.position, movingVector * _moveDistance + adjustmentVector, Color.magenta, 1);
         if(Physics.SphereCast(_boundingBox.transform.position, _boundingBox.SpherecastRadius, movingVector, out RaycastHit hit, _moveDistance * movingVector.magnitude + adjustmentVectorMagnitude - _boundingBox.SpherecastRadius))
         {
             _moveableStructure.ReturnLayer();
@@ -169,7 +169,7 @@ public class MoveableObject : MonoBehaviour
             if(_currentNormalMovingVector.y > 0)//TEMPORARY UNIL I FIND A BETTER SOLUTION, I HATE THIS
             {
                 UnityStandardAssets.Characters.FirstPerson.FirstPersonController player = GetComponentInChildren<UnityStandardAssets.Characters.FirstPerson.FirstPersonController>();
-                if(player)
+                if(player && !Input.GetKey(KeyCode.LeftShift))
                 {
                     player.transform.parent = null;
                 }
