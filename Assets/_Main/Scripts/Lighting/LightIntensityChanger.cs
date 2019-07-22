@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class LightIntensityChanger : MonoBehaviour {
-	
-	[SerializeField] private float _startTime = 0f;
-
-	[SerializeField] private ParticleSystem _particleSystem;
 
 	[SerializeField, Range(0, 5)] private float _minIntensity;
 	[SerializeField, Range(0, 5)] private float _maxIntensity;
@@ -19,21 +15,18 @@ public class LightIntensityChanger : MonoBehaviour {
 	{
 		_light = GetComponent<Light>();
 		_light.intensity = 0f;
-		_particleSystem.Stop();
 
 		StartCoroutine(IntensityChanger());
 	}
 
 	private IEnumerator IntensityChanger()
 	{
-		yield return new WaitForSeconds(_startTime);
-
-		_particleSystem.Play();
-
 		float intensityDifference = _maxIntensity - _minIntensity;
+		float randomY = Random.Range(0, 100);
+
 		while(true)
 		{
-			float perlinNoise = Mathf.PerlinNoise(Time.time * _changeSpeed, 0);
+			float perlinNoise = Mathf.PerlinNoise(Time.time * _changeSpeed, randomY);
 			
 			_light.intensity = _minIntensity + perlinNoise * intensityDifference;
 

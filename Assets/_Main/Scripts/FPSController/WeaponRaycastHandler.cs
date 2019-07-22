@@ -115,7 +115,7 @@ public class WeaponRaycastHandler : GameEventUserObject
 
     private bool CheckRaycastForMatch(Transform checkTransform)
     {
-        if(_hit.transform.gameObject.layer == LayerMask.NameToLayer("MoveablePlane"))
+        if(_hit.transform?.gameObject.layer == LayerMask.NameToLayer("MoveablePlane"))
         {
             return _hit.transform == checkTransform;
         }
@@ -125,38 +125,33 @@ public class WeaponRaycastHandler : GameEventUserObject
 
     private void FireWeapon(WeaponFiredEventArgs eventArgs)
     {   
-        if(_hit.transform)
+
+        if(_hit.transform?.gameObject.layer == LayerMask.NameToLayer("MoveablePlane"))
         {
-            if(_hit.transform.gameObject.layer == LayerMask.NameToLayer("MoveablePlane"))
+            MoveablePlane plane = _hit.transform.GetComponentInParent<MoveablePlane>();
+            if(plane) 
             {
-                MoveablePlane plane = _hit.transform.GetComponentInParent<MoveablePlane>();
-                if(plane) 
-                {
-                    bool validTarget = (_canPull && eventArgs.FireTypeArg == FireType.Pull) || (_canPush && eventArgs.FireTypeArg == FireType.Push);
-                    HandleHitSound(plane.HandleHit(new HitData(eventArgs.FireTypeArg, validTarget)), eventArgs.FireTypeArg);
-                    StartCoroutine(UpdateFireRate(eventArgs, _hit.transform));
-                }
-                else Debug.LogError("No MoveablePlane component found!");
-            }   
-        }
+                bool validTarget = (_canPull && eventArgs.FireTypeArg == FireType.Pull) || (_canPush && eventArgs.FireTypeArg == FireType.Push);
+                HandleHitSound(plane.HandleHit(new HitData(eventArgs.FireTypeArg, validTarget)), eventArgs.FireTypeArg);
+                StartCoroutine(UpdateFireRate(eventArgs, _hit.transform));
+            }
+            else Debug.LogError("No MoveablePlane component found!");
+        }  
     }
 
     private HitResult FireWeaponAgain(WeaponFiredEventArgs eventArgs)
     {
-        if(_hit.transform)
+        if(_hit.transform?.gameObject.layer == LayerMask.NameToLayer("MoveablePlane"))
         {
-            if(_hit.transform.gameObject.layer == LayerMask.NameToLayer("MoveablePlane"))
+            MoveablePlane plane = _hit.transform.GetComponentInParent<MoveablePlane>();
+            if(plane) 
             {
-                MoveablePlane plane = _hit.transform.GetComponentInParent<MoveablePlane>();
-                if(plane) 
-                {
-                    bool validTarget = (_canPull && eventArgs.FireTypeArg == FireType.Pull) || (_canPush && eventArgs.FireTypeArg == FireType.Push);
-                    HitResult result = plane.HandleHit(new HitData(eventArgs.FireTypeArg, validTarget));
-                    HandleHitSound(result, eventArgs.FireTypeArg);
-                    return result;
-                }
-                else Debug.LogError("No MoveablePlane component found!");
+                bool validTarget = (_canPull && eventArgs.FireTypeArg == FireType.Pull) || (_canPush && eventArgs.FireTypeArg == FireType.Push);
+                HitResult result = plane.HandleHit(new HitData(eventArgs.FireTypeArg, validTarget));
+                HandleHitSound(result, eventArgs.FireTypeArg);
+                return result;
             }
+            else Debug.LogError("No MoveablePlane component found!");
         }
 
         return HitResult.Failure;

@@ -393,12 +393,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
             if(_characterController.isGrounded)
             {
                 _moveVector.x -= Mathf.Sign(_moveVector.x) * _horrizontalLaunchGroundDampening * Time.deltaTime;
-                _moveVector.z -= Mathf.Sign(_moveVector.x) * _horrizontalLaunchGroundDampening * Time.deltaTime;
+                _moveVector.z -= Mathf.Sign(_moveVector.z) * _horrizontalLaunchGroundDampening * Time.deltaTime;
             }
             else
             {
                 _moveVector.x -= Mathf.Sign(_moveVector.x) * _horrizontalLaunchAirDampening * Time.deltaTime;
-                _moveVector.z -= Mathf.Sign(_moveVector.x) * _horrizontalLaunchAirDampening * Time.deltaTime;
+                _moveVector.z -= Mathf.Sign(_moveVector.z) * _horrizontalLaunchAirDampening * Time.deltaTime;
             }
 
             if(!CompareToZero(_moveVector.x, 1f)) _moveVector.x += desiredMove.x;
