@@ -30,7 +30,10 @@ public class MoveableStructure : MonoBehaviour
                 _structures.Add(child);
             }
         }
+    }
 
+    private void Start()
+    {
         ReturnLayer();
     }
 

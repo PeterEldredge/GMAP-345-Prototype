@@ -302,7 +302,7 @@ Light:
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
   m_Shadows:
-    m_Type: 2
+    m_Type: 0
     m_Resolution: -1
     m_CustomResolution: -1
     m_Strength: 1
@@ -19414,16 +19414,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: torch
-      objectReference: {fileID: 0}
-    - target: {fileID: -927199367670048503, guid: 5cfa8f6e1224a144481800e2ee8d6205,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8193967262059093913, guid: 5cfa8f6e1224a144481800e2ee8d6205,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -4216859302048453862, guid: 5cfa8f6e1224a144481800e2ee8d6205,
         type: 3}

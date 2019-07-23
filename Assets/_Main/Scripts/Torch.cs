@@ -36,7 +36,7 @@ public class Torch : MonoBehaviour
             pSystem.Play();
         }
         
-        _audioSource.Play();
+        if(_audioSource) _audioSource.Play();
     }
 
     public void Off()

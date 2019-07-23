@@ -9,7 +9,7 @@ public class TorchSystem : MonoBehaviour
     [SerializeField] private Color _startingAmbientColor;
     [SerializeField] private Color _endingAmbientColor;
 
-    private void Awake()
+    private void Start()
     {
         RenderSettings.ambientLight = _startingAmbientColor;
 

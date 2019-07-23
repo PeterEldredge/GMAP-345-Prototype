@@ -199,15 +199,10 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 _isLaunchingVertiaclly = !CompareToZero(_launchVector.y);
                 _isLaunchingHorrizontally = !CompareToZero(_launchVector.x) || !CompareToZero(_launchVector.z);
 
-                if(_isLaunchingVertiaclly && _isLaunchingHorrizontally)
-                {
-                    _currentGravityMultiplier = _diagonalLaunchGravityMultiplier;
-                }
-                else
-                {
-                    if(_isLaunchingVertiaclly) _currentGravityMultiplier = _verticalLaunchGravityMultiplier;
-                    else _currentGravityMultiplier = _horrizontalLaunchGravityMultiplier;
-                }
+                if(_isLaunchingVertiaclly && _isLaunchingHorrizontally) _currentGravityMultiplier = _diagonalLaunchGravityMultiplier;
+                else if(_isLaunchingVertiaclly) _currentGravityMultiplier = _verticalLaunchGravityMultiplier;
+                else if(_isLaunchingHorrizontally) _currentGravityMultiplier = _horrizontalLaunchGravityMultiplier;
+                else _currentGravityMultiplier = _gravityMultiplier;
 
                 _moveVector = _launchVector;
                 _launchVector = Vector3.zero;

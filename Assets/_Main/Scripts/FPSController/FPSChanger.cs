@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class FPSChanger : MonoBehaviour
 {
@@ -31,6 +32,16 @@ public class FPSChanger : MonoBehaviour
         else if(Input.GetKeyDown(KeyCode.DownArrow))
         {
             Application.targetFrameRate = 120;
+        }
+
+        if(Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
         }
     }
 
