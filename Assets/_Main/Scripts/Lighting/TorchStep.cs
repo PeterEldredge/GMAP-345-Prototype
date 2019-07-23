@@ -6,6 +6,5 @@ using UnityEngine;
 public class TorchStep
 {
     public float StartTime;
-    public List<Light> Lights;
-	public List<ParticleSystem> ParticleSystems;
+    public List<Torch> Torches;
 }

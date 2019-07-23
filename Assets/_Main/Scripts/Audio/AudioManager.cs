@@ -1,9 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class AudioManager : MonoBehaviour
 {
+    [SerializeField] private int _numOfSources = 6;
     [SerializeField] private AudioClip _pullSound = null;
     [SerializeField] private AudioClip _pushSound = null;
     [SerializeField] private AudioClip _dudSound = null;
@@ -11,35 +13,60 @@ public class AudioManager : MonoBehaviour
 
     public static AudioManager Instance { get; private set; }
 
-    private AudioSource _audioSource;
+    private Queue<AudioSource> _audioSources;
 
     private void Awake()
     {
         if(Instance == null) Instance = this;
-        Instance._audioSource = GetComponent<AudioSource>();
+        Instance._audioSources = new Queue<AudioSource>();
+
+        for(int i = 0; i < _numOfSources; i++)
+        {
+            _audioSources.Enqueue((AudioSource)gameObject.AddComponent(typeof(AudioSource)));
+        }
     }
 
-    public void PlayPushSound()
+    internal void PlayTorchOnSound()
     {
-        Instance._audioSource.clip = _pushSound;
-        Instance._audioSource.Play();
+        throw new NotImplementedException();
+    }
+
+    public void PlayPushSound() //Make Generic play functions later
+    {
+        AudioSource audioSource = _audioSources.Dequeue();
+        audioSource.clip = _pushSound;
+        audioSource.Play();
+        StartCoroutine(AddBackToQueue(audioSource));
     }
 
     public void PlayPullSound()
     {
-        Instance._audioSource.clip = _pullSound;
-        Instance._audioSource.Play();
+        AudioSource audioSource = _audioSources.Dequeue();
+        audioSource.clip = _pullSound;
+        audioSource.Play();
+        StartCoroutine(AddBackToQueue(audioSource));
     }
 
     public void PlayDudSound()
     {
-        Instance._audioSource.clip = _dudSound;
-        Instance._audioSource.Play();
+        AudioSource audioSource = _audioSources.Dequeue();
+        audioSource.clip = _dudSound;
+        audioSource.Play();
+        StartCoroutine(AddBackToQueue(audioSource));
     }
 
     public void PlayEndOfPathSound()
     {
-        Instance._audioSource.clip = _endOfPathSound;
-        Instance._audioSource.Play();
+        AudioSource audioSource = _audioSources.Dequeue();
+        audioSource.clip = _endOfPathSound;
+        audioSource.Play();
+        StartCoroutine(AddBackToQueue(audioSource));
+    }
+
+    private IEnumerator AddBackToQueue(AudioSource audioSource)
+    {
+        yield return new WaitForSeconds(audioSource.clip.length + .1f);
+
+        _audioSources.Enqueue(audioSource);
     }
 }

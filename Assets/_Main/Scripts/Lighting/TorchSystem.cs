@@ -15,14 +15,9 @@ public class TorchSystem : MonoBehaviour
 
         foreach(TorchStep torchStep in _torchSteps)
         {
-            foreach(Light light in torchStep.Lights)
+            foreach(Torch torch in torchStep.Torches)
             {
-                light.enabled = false;
-            }
-
-            foreach(ParticleSystem pSystem in torchStep.ParticleSystems)
-            {
-                pSystem.Stop();
+                torch.Off();
             }
         }
 
@@ -37,14 +32,9 @@ public class TorchSystem : MonoBehaviour
 
             yield return new WaitForSeconds(torchStep.StartTime);
 
-            foreach(Light light in torchStep.Lights)
+            foreach(Torch torch in torchStep.Torches)
             {
-                light.enabled = true;
-            }
-
-            foreach(ParticleSystem pSystem in torchStep.ParticleSystems)
-            {
-                pSystem.Play();
+                torch.On();
             }
 
             RenderSettings.ambientLight = Color.Lerp(_startingAmbientColor, _endingAmbientColor, (i + 1f) / _torchSteps.Count);

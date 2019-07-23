@@ -43,6 +43,7 @@ public class MoveableObject : MonoBehaviour
     private Vector3Int _currentNormalMovingVector;
     private Vector3Int _endOfPath;
     private BoundingBox _boundingBox;
+    private Collider _boundingBoxCollider;
     private MoveableStructure _moveableStructure;
 
     public bool IsMoving { get { return _moving; } }
@@ -65,6 +66,8 @@ public class MoveableObject : MonoBehaviour
 
         _boundingBox = GetComponentInChildren<BoundingBox>();
         if(_boundingBox == null) Debug.LogError("No bounding box as child to movable object!");
+
+        _boundingBoxCollider = _boundingBox.GetComponent<Collider>();
         
         _moveableStructure = GetComponentInChildren<MoveableStructure>();
         if(_moveableStructure == null) Debug.LogError("No moveable structure as child to movable object!");
@@ -113,12 +116,12 @@ public class MoveableObject : MonoBehaviour
         
         if(Mathf.Abs(movingVector.x) + Mathf.Abs(movingVector.y) + Mathf.Abs(movingVector.z) > 1) // Multiplier for diagonal movement, maybe just do 2 raycasts instead??
         {
-            adjustmentVectorMagnitude *= .8f;
+            adjustmentVectorMagnitude *= .7f;
         }
 
         _moveableStructure.HideChildrenFromRaycast(); //I have no idea if changing the layer of a bunch of objects for a single raycast is terrible or not
 
-        //Debug.DrawRay(_boundingBox.transform.position, movingVector * _moveDistance + adjustmentVector, Color.magenta, 1);
+        Debug.DrawRay(_boundingBox.transform.position, movingVector * _moveDistance + adjustmentVector, Color.magenta, 1);
         if(Physics.SphereCast(_boundingBox.transform.position, _boundingBox.SpherecastRadius, movingVector, out RaycastHit hit, _moveDistance * movingVector.magnitude + adjustmentVectorMagnitude - _boundingBox.SpherecastRadius))
         {
             _moveableStructure.ReturnLayer();

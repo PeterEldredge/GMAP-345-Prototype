@@ -713,6 +713,8 @@ MonoBehaviour:
   _moveTime: 0.1
   _verticalLaunchSpeed: 17
   _horizontalLaunchSpeed: 25
+  _diagonalVerticalLaunchSpeed: 12
+  _diagonalHorizontalLaunchSpeed: 20
   MoveDistance: 2
   ShowPreview: 1
   XMoves: 0

@@ -292,7 +292,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1812713162
 CanvasRenderer:
@@ -344,9 +344,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _defaultReticle: {fileID: 21300000, guid: 0a129ae24db375544a7b3542f034cedd, type: 3}
-  _pushableReticle: {fileID: 21300000, guid: da5f2893f1016c944872702ef5286e11, type: 3}
-  _pullableReticle: {fileID: 21300000, guid: 216f959785151644baf9d32d6994a088, type: 3}
-  _bothableReticle: {fileID: 21300000, guid: 7659b6641c4025c479d1ddeaec4a57cc, type: 3}
+  _pushableReticle: {fileID: 21300000, guid: 216f959785151644baf9d32d6994a088, type: 3}
+  _pullableReticle: {fileID: 21300000, guid: 7659b6641c4025c479d1ddeaec4a57cc, type: 3}
+  _bothableReticle: {fileID: 21300000, guid: da5f2893f1016c944872702ef5286e11, type: 3}
 --- !u!1 &2066011195
 GameObject:
   m_ObjectHideFlags: 0
@@ -357,7 +357,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2066011196}
   - component: {fileID: 2066011198}
-  - component: {fileID: 2066011197}
   m_Layer: 0
   m_Name: AudioManager
   m_TagString: Untagged
@@ -391,106 +390,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64c03714cd14d204db37b30b06899812, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _pullSound: {fileID: 8300000, guid: e8b11a310fbdcdb489948f379008d88e, type: 3}
-  _pushSound: {fileID: 8300000, guid: e8b11a310fbdcdb489948f379008d88e, type: 3}
-  _dudSound: {fileID: 8300000, guid: a4d49d5c13a0046458b3db208ee9aea7, type: 3}
-  _endOfPathSound: {fileID: 0}
---- !u!82 &2066011197
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2066011195}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
-  m_PlayOnAwake: 0
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
+  _numOfSources: 6
+  _pullSound: {fileID: 8300000, guid: f3be2f98a84977b4f96d04c9782fc8ea, type: 3}
+  _pushSound: {fileID: 8300000, guid: f3be2f98a84977b4f96d04c9782fc8ea, type: 3}
+  _dudSound: {fileID: 8300000, guid: 774a464420e4dff4fbd0e4c12838b946, type: 3}
+  _endOfPathSound: {fileID: 8300000, guid: 554fad7442f977642b614793eef84814, type: 3}
 --- !u!1 &6157393121953547012
 GameObject:
   m_ObjectHideFlags: 0
