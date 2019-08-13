@@ -8,6 +8,13 @@ public class TorchSystem : MonoBehaviour
 
     [SerializeField] private Color _startingAmbientColor;
     [SerializeField] private Color _endingAmbientColor;
+    
+    private AudioSource _audioSource;
+
+    private void Awake()
+    {
+        _audioSource = GetComponent<AudioSource>();
+    }
 
     private void Start()
     {
@@ -39,5 +46,7 @@ public class TorchSystem : MonoBehaviour
 
             RenderSettings.ambientLight = Color.Lerp(_startingAmbientColor, _endingAmbientColor, (i + 1f) / _torchSteps.Count);
         }
+
+        AudioManager.Instance.StartMusic();
     }
 }

@@ -14,10 +14,14 @@ public class AudioManager : MonoBehaviour
     public static AudioManager Instance { get; private set; }
 
     private Queue<AudioSource> _audioSources;
+    private AudioSource _musicSource;
+    private float _musicVolume;
 
     private void Awake()
     {
         if(Instance == null) Instance = this;
+        _musicSource = GetComponent<AudioSource>();
+        _musicVolume = _musicSource.volume;
         Instance._audioSources = new Queue<AudioSource>();
 
         for(int i = 0; i < _numOfSources; i++)
@@ -62,6 +66,40 @@ public class AudioManager : MonoBehaviour
         audioSource.Play();
         StartCoroutine(AddBackToQueue(audioSource));
     }
+
+    public void StartMusic()
+    {
+        _musicSource.volume = _musicVolume;
+        _musicSource.Play();
+    }
+
+    public void StartMusic(AudioClip clip)
+    {
+        _musicSource.clip = clip;
+        _musicSource.volume = _musicVolume;
+        _musicSource.Play();
+    }
+
+    public void StopMusic()
+    {
+        StartCoroutine(FadeOut(_musicSource, 3f));
+    }
+
+    private IEnumerator FadeOut(AudioSource source, float time)
+    {
+        float timer = 0f;
+        float startingVolume = source.volume; 
+
+        while(timer < time)
+        {
+            source.volume = Mathf.Lerp(startingVolume, 0f, timer / time);
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        source.Stop();
+    }
+
 
     private IEnumerator AddBackToQueue(AudioSource audioSource)
     {
