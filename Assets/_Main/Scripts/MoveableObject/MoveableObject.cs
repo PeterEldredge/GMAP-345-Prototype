@@ -30,7 +30,7 @@ public class MoveableObject : MonoBehaviour
     [SerializeField] private float _horizontalLaunchSpeed = 25f;
     [SerializeField] private float _diagonalVerticalLaunchSpeed = 12f;
     [SerializeField] private float _diagonalHorizontalLaunchSpeed = 20f;
-    [Range(1, 30)] public int MoveDistance = 2;
+    [Range(1, 50)] public int MoveDistance = 2;
 
     [HideInInspector] public bool ShowPreview = true;  
     [HideInInspector] public int XMoves, YMoves, ZMoves;
