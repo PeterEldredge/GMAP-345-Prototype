@@ -172,64 +172,67 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void Update()
         {
-            UpdateMembers();
-            UpdateParent();
-            RotateView();
-
-            if (!_previouslyGrounded && _characterController.isGrounded && !_launch)
+            if(!PauseMenu.GameIsPaused)
             {
-                PlayLandingSound();
-                _moveVector.y = 0f;
-                _jumping = false;
-                _currentGravityMultiplier = _gravityMultiplier;
-            }
-            if (!_characterController.isGrounded && !_jumping && !_isLaunchingVertiaclly && !_isLaunchingHorrizontally && _previouslyGrounded)
-            {
-                _moveVector.y = 0f;
-            }
+                UpdateMembers();
+                UpdateParent();
+                RotateView();
 
-            _previouslyGrounded = _characterController.isGrounded;
-
-            if(_isLaunchingHorrizontally) GetHorrizontalLaunchInput();
-            else GetInput();
-
-            if(_launch)
-            {
-                _launch = false;
-                _isLaunchingVertiaclly = !CompareToZero(_launchVector.y);
-                _isLaunchingHorrizontally = !CompareToZero(_launchVector.x) || !CompareToZero(_launchVector.z);
-
-                if(_isLaunchingVertiaclly && _isLaunchingHorrizontally) _currentGravityMultiplier = _diagonalLaunchGravityMultiplier;
-                else if(_isLaunchingVertiaclly) _currentGravityMultiplier = _verticalLaunchGravityMultiplier;
-                else if(_isLaunchingHorrizontally) _currentGravityMultiplier = _horrizontalLaunchGravityMultiplier;
-                else _currentGravityMultiplier = _gravityMultiplier;
-
-                _moveVector = _launchVector;
-                _launchVector = Vector3.zero;
-            }
-            else if (_characterController.isGrounded)
-            {
-                _moveVector.y = -_stickToGroundForce;
-
-                _isLaunchingVertiaclly = false;
-
-                if (_jump)
+                if (!_previouslyGrounded && _characterController.isGrounded && !_launch)
                 {
-                    _moveVector.y = _jumpSpeed;
-                    PlayJumpSound();
-                    _jump = false;
-                    _jumping = true;
+                    PlayLandingSound();
+                    _moveVector.y = 0f;
+                    _jumping = false;
+                    _currentGravityMultiplier = _gravityMultiplier;
                 }
-            }
-            else
-            {
-                _moveVector += Physics.gravity*_currentGravityMultiplier*Time.deltaTime;
-            }
-            _collisionFlags = _characterController.Move(_moveVector*Time.deltaTime);
+                if (!_characterController.isGrounded && !_jumping && !_isLaunchingVertiaclly && !_isLaunchingHorrizontally && _previouslyGrounded)
+                {
+                    _moveVector.y = 0f;
+                }
 
-            Fire(Input.GetMouseButtonDown(0), Input.GetMouseButtonDown(1));
-            ProgressStepCycle();
-            UpdateAnimations();
+                _previouslyGrounded = _characterController.isGrounded;
+
+                if(_isLaunchingHorrizontally) GetHorrizontalLaunchInput();
+                else GetInput();
+
+                if(_launch)
+                {
+                    _launch = false;
+                    _isLaunchingVertiaclly = !CompareToZero(_launchVector.y);
+                    _isLaunchingHorrizontally = !CompareToZero(_launchVector.x) || !CompareToZero(_launchVector.z);
+
+                    if(_isLaunchingVertiaclly && _isLaunchingHorrizontally) _currentGravityMultiplier = _diagonalLaunchGravityMultiplier;
+                    else if(_isLaunchingVertiaclly) _currentGravityMultiplier = _verticalLaunchGravityMultiplier;
+                    else if(_isLaunchingHorrizontally) _currentGravityMultiplier = _horrizontalLaunchGravityMultiplier;
+                    else _currentGravityMultiplier = _gravityMultiplier;
+
+                    _moveVector = _launchVector;
+                    _launchVector = Vector3.zero;
+                }
+                else if (_characterController.isGrounded)
+                {
+                    _moveVector.y = -_stickToGroundForce;
+
+                    _isLaunchingVertiaclly = false;
+
+                    if (_jump)
+                    {
+                        _moveVector.y = _jumpSpeed;
+                        PlayJumpSound();
+                        _jump = false;
+                        _jumping = true;
+                    }
+                }
+                else
+                {
+                    _moveVector += Physics.gravity*_currentGravityMultiplier*Time.deltaTime;
+                }
+                _collisionFlags = _characterController.Move(_moveVector*Time.deltaTime);
+
+                Fire(Input.GetMouseButtonDown(0), Input.GetMouseButtonDown(1));
+                ProgressStepCycle();
+                UpdateAnimations();
+            }
         }
 
         private void UpdateMembers()
