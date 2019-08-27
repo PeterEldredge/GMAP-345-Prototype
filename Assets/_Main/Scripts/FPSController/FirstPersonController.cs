@@ -152,7 +152,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             _launch = true;
             if(!CompareToZero(eventArgs.LaunchVector.x) || !CompareToZero(eventArgs.LaunchVector.z)) _launchVector = eventArgs.LaunchVector * eventArgs.HorizontalLaunchSpeed * -1f;
-            else _launchVector = eventArgs.LaunchVector * eventArgs.VerticalLaunchSpeed * -1f;
+            else _launchVector = eventArgs.LaunchVector * eventArgs.VerticalLaunchSpeed * -1f + new Vector3(_moveVector.x, 0, _moveVector.y);
         }
 
         private bool CompareToZero(float f, float error = .01f)
@@ -491,6 +491,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
             if(_collisionFlags == CollisionFlags.Above)
             {
                 _moveVector.y = 0;
+                _isLaunchingHorrizontally = false;
+                _isLaunchingVertiaclly = false;
                 return;
             }
 
