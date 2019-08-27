@@ -16,6 +16,7 @@ public class AudioManager : MonoBehaviour
     private Queue<AudioSource> _audioSources;
     private AudioSource _musicSource;
     private float _musicVolume;
+    private Coroutine _fadeRoutine;
 
     private void Awake()
     {
@@ -75,6 +76,7 @@ public class AudioManager : MonoBehaviour
 
     public void StartMusic(AudioClip clip)
     {
+        StopCoroutine(_fadeRoutine);
         _musicSource.clip = clip;
         _musicSource.volume = _musicVolume;
         _musicSource.Play();
@@ -82,7 +84,7 @@ public class AudioManager : MonoBehaviour
 
     public void StopMusic()
     {
-        StartCoroutine(FadeOut(_musicSource, 3f));
+        _fadeRoutine = StartCoroutine(FadeOut(_musicSource, 3f));
     }
 
     private IEnumerator FadeOut(AudioSource source, float time)

@@ -8,6 +8,8 @@ public class TorchSystem : MonoBehaviour
 
     [SerializeField] private Color _startingAmbientColor;
     [SerializeField] private Color _endingAmbientColor;
+
+    [SerializeField] private int _maxTorchSounds;
     
     private AudioSource _audioSource;
 
@@ -39,9 +41,10 @@ public class TorchSystem : MonoBehaviour
 
             yield return new WaitForSeconds(torchStep.StartTime);
 
-            foreach(Torch torch in torchStep.Torches)
+            for(int j = 0; j < torchStep.Torches.Count; j++)
             {
-                torch.On();
+                if(j < _maxTorchSounds) torchStep.Torches[j].On();
+                else torchStep.Torches[j].On(false);
             }
 
             RenderSettings.ambientLight = Color.Lerp(_startingAmbientColor, _endingAmbientColor, (i + 1f) / _torchSteps.Count);

@@ -24,7 +24,7 @@ public class Torch : MonoBehaviour
         }
     }
 
-    public void On()
+    public void On(bool playSound = true)
     {
         foreach(Light light in _lights)
         {
@@ -36,7 +36,7 @@ public class Torch : MonoBehaviour
             pSystem.Play();
         }
         
-        if(_audioSource) _audioSource.Play();
+        if(_audioSource && playSound) _audioSource.Play();
     }
 
     public void Off()
