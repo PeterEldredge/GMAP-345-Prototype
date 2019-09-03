@@ -9,13 +9,12 @@ public class FPSChanger : MonoBehaviour
 
     private void Awake()
     {
-        QualitySettings.vSyncCount = 0;
-        Application.targetFrameRate = 120;
+        Application.targetFrameRate = 60;
     }
 
     private void Update()
     {
-        ACTUAL_DELTA_TIME = Time.deltaTime;
+        /*ACTUAL_DELTA_TIME = Time.deltaTime;
 
         if(Input.GetKeyDown(KeyCode.LeftArrow))
         {
@@ -32,7 +31,7 @@ public class FPSChanger : MonoBehaviour
         else if(Input.GetKeyDown(KeyCode.DownArrow))
         {
             Application.targetFrameRate = 120;
-        }
+        }*/
 
         if(Input.GetKeyDown(KeyCode.R))
         {

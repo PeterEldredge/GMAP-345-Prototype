@@ -5,50 +5,61 @@ using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
-	public static bool GameIsPaused = false;
+
+  public static PauseMenu Instance;
+	public bool GameIsPaused = false;
 	public GameObject pauseMenuUI;
 
-    // Update is called once per frame
-    void Update()
+  private void Awake()
+  {
+    if(!Instance)
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+      Instance = this;
+    }
+  }
+
+  // Update is called once per frame
+  void Update()
+  {
+      if (Input.GetKeyDown(KeyCode.Escape))
+      {
+        if (GameIsPaused)
         {
-        	if (GameIsPaused)
-        	{
-        		Resume();
-        	}
-        	else
-        	{
-        		Pause();
-        	}
+          Resume();
         }
-    }
+        else
+        {
+          Pause();
+        }
+      }
+  }
 
-    public void Resume()
-    {
-      pauseMenuUI.SetActive(false);
-      Time.timeScale = 1f;
-      GameIsPaused = false;
-      Cursor.lockState = CursorLockMode.Locked;
-      Cursor.visible = false;
-    }
+  public void Resume()
+  {
+    pauseMenuUI.SetActive(false);
+    Time.timeScale = 1f;
+    Instance.GameIsPaused = false;
+    Cursor.lockState = CursorLockMode.Locked;
+    Cursor.visible = false;
+  }
 
-    void Pause()
-    {
-      pauseMenuUI.SetActive(true);
-      Time.timeScale = 0f;
-      GameIsPaused = true;
-      Cursor.lockState = CursorLockMode.None;
-      Cursor.visible = true;
-    }
+  void Pause()
+  {
+    pauseMenuUI.SetActive(true);
+    Time.timeScale = 0f;
+    Instance.GameIsPaused = true;
+    Cursor.lockState = CursorLockMode.None;
+    Cursor.visible = true;
+  }
 
-    public void LoadMenu()
-    {
-      SceneManager.LoadScene("MainMenu");
-    }
+  public void LoadMenu()
+  {
+    Resume();
+    SceneManager.LoadScene("MainMenu");
+  }
 
-    public void QuitGame()
-    {
-    	Application.Quit();
-    }
+  public void QuitGame()
+  {
+    Application.Quit();
+  }
 }

@@ -87,6 +87,11 @@ public class AudioManager : MonoBehaviour
         _fadeRoutine = StartCoroutine(FadeOut(_musicSource, 3f));
     }
 
+    public void StopMusic(float time)
+    {
+        _fadeRoutine = StartCoroutine(FadeOut(_musicSource, time));
+    }
+
     private IEnumerator FadeOut(AudioSource source, float time)
     {
         float timer = 0f;
